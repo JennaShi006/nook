@@ -1,13 +1,24 @@
-import React from "react";
 import "./Header.css";
 import userIcon from "../graphics/account_icon.png";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { getCurrentUser } from "../utils/auth";
 
 function Header() {
+
+    const navigate = useNavigate();
+    const user = getCurrentUser();
 
     /* Learn More directs to our repo! */
     const handleLearnMoreClick = () => {
         window.open("https://github.com/JennaShi006/nook", "_blank");
+    };
+
+    const handleAccountClick = () => {
+        if (user) {
+            navigate("/account");
+        }   else {
+        navigate("/login");
+        }
     };
     
     return (
@@ -27,7 +38,10 @@ function Header() {
                 </nav>
 
                 {/* Account icon */}
-                <Link to="/login" className="account-icon" title="Login / Sign Up">
+                {/* <Link to="/login" className="account-icon" title="Login / Sign Up">
+                        <img src={userIcon} alt="User Account" className="user-img" />
+                </Link> */}
+                <Link to="/account" className="account-icon" onClick={handleAccountClick}>
                         <img src={userIcon} alt="User Account" className="user-img" />
                 </Link>
             </div>
