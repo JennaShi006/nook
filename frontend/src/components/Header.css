@@ -1,0 +1,109 @@
+/* note for colors: #ffe9ce light orange; #a3d8ff light blue*/
+
+.header {
+    position: fixed; /* keeps it visible on scroll */
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    border-bottom: 2px solid #eee;
+    font-family: Arial, sans-serif;
+    z-index: 1000; /* ensures it stays on top of other content */
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 15px 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  /* gap: 40px; */
+}
+
+.logo {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 35px;
+    white-space: nowrap; 
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: black;
+    font-weight: 500;
+    transition: color 0.2s ease;
+    flex: 1
+}
+
+.nav-links a:hover {
+    text-decoration: underline;
+    color: #a3d8ff;
+}
+
+.learn-more {
+  background-color: #a3d8ff;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  flex-shrink: 0; /* prevent squishing */
+  white-space: nowrap; /* keep text in one line */
+}
+
+.learn-more:hover {
+  transform: scale(1.05);
+  background-color: #a3d8ff;
+}
+
+.account-icon {
+  color: black;
+  font-size: 20px;
+  transition: color 0.2s ease, transform 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-icon:hover {
+  color: #a3d8ff;
+  transform: scale(1.1);
+}
+
+.user-img {
+  width: 40px; 
+  height: 40px;
+  border-radius: 50%; /* circular border */
+  object-fit: cover;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.user-img:hover {
+  transform: scale(1.1);
+  filter: brightness(0.85);
+}
+
+
+/* Responsive behavior */
+@media (max-width: 900px) {
+    .header-container {
+        flex-direction: column;
+        padding: 12px 40px;
+        gap: 12px
+    }
+
+    .nav-links {
+        gap: 25px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
