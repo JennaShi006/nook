@@ -34,6 +34,7 @@ function SignupPage() {
             }
 
             console.log("Signup response:", data);
+            localStorage.setItem("user", JSON.stringify(data));
             alert("Signup successful! Check console for response.");
         } catch (err) {
             console.error("Error:", err);
