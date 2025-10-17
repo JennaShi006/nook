@@ -1,4 +1,4 @@
-import "./Header.css";
+import "../style/Header.css";
 import userIcon from "../graphics/account_icon.png";
 import { Link, useNavigate } from "react-router-dom";
 import { getCurrentUser } from "../utils/auth";
