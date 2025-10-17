@@ -5,7 +5,6 @@ import http from "http";
 import { Server } from "socket.io";
 import Message from "./message.js";
 
-
 dotenv.config();
 console.log("ENV KEYS:", process.env.RESEND_API_KEY, process.env.CLIENT_URL);
 
