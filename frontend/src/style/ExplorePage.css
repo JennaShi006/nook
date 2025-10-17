@@ -1,0 +1,21 @@
+.explore-page {
+  padding-top: 100px;
+  display: flex;
+  justify-content: left;
+}
+
+.listing-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+}
+
+/* Responsive behavior */
+@media (max-width: 900px) {
+    .listing-grid {
+        flex-direction: column;
+        padding: 12px 40px;
+        gap: 12px
+    }
+}

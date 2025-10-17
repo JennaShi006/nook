@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "./AccountSettings.css";
+import "../style/AccountSettings.css";
 import { getCurrentUser, logoutUser } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 
