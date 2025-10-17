@@ -1,11 +1,14 @@
 // backend/utils/emails.js
+import dotenv from "dotenv";
+dotenv.config(); 
 import { Resend } from "resend";
+console.log("RESEND_API_KEY:", process.env.RESEND_API_KEY);
 
-// if (!process.env.RESEND_API_KEY) {
-//   throw new Error("RESEND_API_KEY is missing in your .env");
-// }
+if (!process.env.RESEND_API_KEY) {
+  throw new Error("RESEND_API_KEY is missing in your .env");
+}
 
-const resend = new Resend("re_184svZKZ_Cc9PohRzMqJwqfYh5MpRLySY");
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const sendVerificationEmail = async (email, token) => {
      console.log("Sending email to:", email);

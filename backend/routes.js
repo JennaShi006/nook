@@ -5,6 +5,8 @@ import crypto from "crypto";
 import { sendVerificationEmail } from "./emails.js";
 import Message from "./message.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
+
 
 
 const router = express.Router();
@@ -13,9 +15,9 @@ router.post("/signup", async (req, res) => {
     const { name, email, username, password, gradYear, gradMonth } = req.body;
 
     // restrict to ufl.edu emails
-    if (!email.endsWith("@ufl.edu")) {
-      return res.status(400).json({ message: "Must use a ufl.edu email" });
-    }
+    // if (!email.endsWith("@ufl.edu")) {
+    //   return res.status(400).json({ message: "Must use a ufl.edu email" });
+    // }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "Email already registered" });
@@ -59,7 +61,12 @@ router.get("/verify/:token", async (req, res) => {
     user.verificationToken = undefined;
     await user.save();
 
-    res.redirect(`${process.env.CLIENT_URL}/login?verified=true`);
+    // Generate JWT token for auto-login
+    const payload = { id: user._id, email: user.email };
+    const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+    // Redirect to frontend with token as query param
+    res.redirect(`${process.env.CLIENT_URL}/login?token=${jwtToken}`);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Verification failed" });
@@ -133,6 +140,9 @@ router.get("/listings", async (req, res) => {
     const listings = await Listing.find().sort({ createdAt: -1 });
     res.status(200).json(listings);
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // get all messages between two users
 router.get("/messages/:userA/:userB", async (req, res) => {
   try {

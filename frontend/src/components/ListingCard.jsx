@@ -4,7 +4,7 @@ import "../style/ListingCard.css"
 export default function ListingCard({ title, description, price , picture, seller}) {
     const [sellerName, setSellerName] = useState(null);
     useEffect((seller) => {
-        fetch(`http://localhost:5001/api/users/${seller}`)
+        fetch(`http://localhost:5000/api/users/${seller}`)
         .then((res) => res.json())
         .then((data) => {
             console.log("Fetched seller:", data)
