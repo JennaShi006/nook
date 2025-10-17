@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "./SignupPage.css"
 
 function SignupPage() {
     const [form, setForm] = useState({
@@ -18,7 +19,7 @@ function SignupPage() {
         e.preventDefault();
 
         try {
-            const response = await fetch("http://localhost:5000/api/users", {
+            const response = await fetch("http://localhost:5000/api/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form)
@@ -43,8 +44,9 @@ function SignupPage() {
     };
 
     return (
-        <div style={{ padding: "2rem" }}>
+        <div className = "signup" style={{ padding: "2rem" }}>
             <h2>Sign Up</h2>
+          
             <form onSubmit={handleSubmit}>
             <input name="name" placeholder="Full Name" onChange={handleChange} required /><br/>
             <input name="email" placeholder="Email" onChange={handleChange} required /><br/>

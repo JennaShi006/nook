@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import routes from "./routes.js";
+//import auth from "./auth.js"
 
 const app = express();
 
@@ -19,5 +20,8 @@ app.get("/", (req, res) => {
 
 // Mount API routes
 app.use('/api', routes);
+
+// email verification 
+//app.use("/api/auth", auth);
 
 export default app;
