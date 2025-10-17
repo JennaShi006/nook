@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,      // no two users can share the same email
       lowercase: true,
+      match: [/^[a-zA-Z0-9._%+-]+@ufl\.edu$/, "Must use your ufl.edu email"],
+
     },
     username:{
         type: String,
@@ -36,7 +38,8 @@ const userSchema = new mongoose.Schema(
       required: true,
       enum: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
     },
-
+     verified: { type: Boolean, default: false },
+     verificationToken: String,
     
   },
   { timestamps: true }   // automatically adds createdAt & updatedAt

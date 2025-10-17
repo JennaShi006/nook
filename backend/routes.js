@@ -1,22 +1,83 @@
 import express from "express";
 import User from "./user.js";
 import Listing from "./listing.js";
+import crypto from "crypto";
+import { sendVerificationEmail } from "./emails.js";
+import Message from "./message.js";
+import mongoose from "mongoose";
+
 
 const router = express.Router();
-
-// POST /api/users
-router.post("/users", async (req, res) => {
+router.post("/signup", async (req, res) => {
   try {
     const { name, email, username, password, gradYear, gradMonth } = req.body;
 
-    const newUser = new User({ name, email, username, password, gradYear, gradMonth });
+    // restrict to ufl.edu emails
+    if (!email.endsWith("@ufl.edu")) {
+      return res.status(400).json({ message: "Must use a ufl.edu email" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: "Email already registered" });
+
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+
+    const newUser = new User({
+      name,
+      email,
+      username,
+      password, // hash later
+      gradYear,
+      gradMonth,
+      verified: false,
+      verificationToken,
+    });
+
     await newUser.save();
 
-    res.status(201).json(newUser);
+    // send email using your emails.js
+    await sendVerificationEmail(email, verificationToken);
+
+    res.status(200).json({ message: "Verification email sent!" });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    console.error(err);
+    res.status(500).json({ message: "Signup failed" });
   }
 });
+
+//////////////////////////
+// VERIFY EMAIL
+//////////////////////////
+router.get("/verify/:token", async (req, res) => {
+  try {
+    const { token } = req.params;
+    const user = await User.findOne({ verificationToken: token });
+
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+    user.verified = true;
+    user.verificationToken = undefined;
+    await user.save();
+
+    res.redirect(`${process.env.CLIENT_URL}/login?verified=true`);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Verification failed" });
+  }
+});
+// POST /api/users
+// router.post("/users", async (req, res) => {
+//   try {
+//     const { name, email, username, password, gradYear, gradMonth } = req.body;
+
+//     const newUser = new User({ name, email, username, password, gradYear, gradMonth });
+//     await newUser.save();
+
+//     res.status(201).json(newUser);
+//   } catch (err) {
+//     res.status(400).json({ error: err.message });
+//   }
+// });
 
 router.post("/users", async (req, res) => {
   try {
@@ -72,6 +133,49 @@ router.get("/listings", async (req, res) => {
     const listings = await Listing.find().sort({ createdAt: -1 });
     res.status(200).json(listings);
   } catch (err) {
+// get all messages between two users
+router.get("/messages/:userA/:userB", async (req, res) => {
+  try {
+    const { userA, userB } = req.params;
+    const messages = await Message.find({
+      $or: [
+        { senderId: userA, receiverId: userB },
+        { senderId: userB, receiverId: userA },
+      ],
+    }).sort({ createdAt: 1 }); // oldest -> newest
+
+    res.status(200).json(messages);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all unique chat partners for a user
+router.get("/conversations/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const objectId = new mongoose.Types.ObjectId(userId);
+
+    const messages = await Message.find({
+      $or: [{ senderId: objectId }, { receiverId: objectId }],
+    });
+
+    // collects all unique partner IDs
+    const partnerIds = new Set();
+    messages.forEach((msg) => {
+      if (msg.senderId.toString() !== userId)
+        partnerIds.add(msg.senderId.toString());
+      if (msg.receiverId.toString() !== userId)
+        partnerIds.add(msg.receiverId.toString());
+    });
+
+    // fetch those users
+    const partners = await User.find({ _id: { $in: Array.from(partnerIds) } })
+      .select("_id name username email");
+
+    res.status(200).json(partners);
+  } catch (err) {
+    console.error("Error loading conversations:", err);
     res.status(500).json({ error: err.message });
   }
 });
