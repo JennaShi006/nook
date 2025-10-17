@@ -133,6 +133,9 @@ router.get("/listings", async (req, res) => {
     const listings = await Listing.find().sort({ createdAt: -1 });
     res.status(200).json(listings);
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // get all messages between two users
 router.get("/messages/:userA/:userB", async (req, res) => {
   try {
