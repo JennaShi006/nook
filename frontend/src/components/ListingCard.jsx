@@ -1,9 +1,11 @@
 import { useEffect , useState} from "react"
 import "../style/ListingCard.css"
 
-export default function ListingCard({ title, description, price , picture, seller}) {
+export default function ListingCard({ title, description, price , picture, seller }) {
     const [sellerName, setSellerName] = useState(null);
-    useEffect((seller) => {
+    useEffect(() => {
+        if (!seller) return;
+        
         fetch(`http://localhost:5001/api/users/${seller}`)
         .then((res) => res.json())
         .then((data) => {
@@ -13,17 +15,18 @@ export default function ListingCard({ title, description, price , picture, selle
         .catch((err) => {
             console.error("Error fetching seller:", err)
         })
-    }, []);
+    }, [seller]);
     return(
         <div className ="listing-card">
             <img className ="listing-image" src = {picture ? picture : "../logo512.png"} alt={title} />
             <div className="listing-details">
                 <div className="listing-text">
                     <h3 className="listing-title">{title}</h3>
+                    <p className="listing-seller">{sellerName}</p>
                     <p className="listing-description">{description}</p>
                 </div>
                 <p className="listing-price">${price}</p>
-                <p className="listing-seller">{sellerName}</p>
+                
             </div>
         </div>
     )
