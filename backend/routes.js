@@ -143,6 +143,7 @@ router.get("/listings", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 // get all messages between two users
 router.get("/messages/:userA/:userB", async (req, res) => {
   try {

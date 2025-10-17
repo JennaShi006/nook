@@ -6,8 +6,7 @@ import http from "http";
 import { Server } from "socket.io";
 import Message from "./message.js";
 
-import mongoose from "mongoose";
-
+dotenv.config();
 console.log("ENV KEYS:", process.env.RESEND_API_KEY, process.env.CLIENT_URL);
 
 const PORT = process.env.PORT || 5000;
