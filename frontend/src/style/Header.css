@@ -65,6 +65,23 @@
   background-color: #a3d8ff;
 }
 
+.create-listing-button {
+  background-color: #ffe9ce;
+  color: black;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  flex-shrink: 0; /* prevent squishing */
+  white-space: nowrap; /* keep text in one line */
+}
+
+.create-listing-button:hover {
+  transform: scale(1.05);
+  background-color: #ffe9ce;
+}
+
 .account-icon {
   color: black;
   font-size: 20px;
@@ -98,7 +115,7 @@
     .header-container {
         flex-direction: column;
         padding: 12px 40px;
-        gap: 12px
+        gap: 12px;
     }
 
     .nav-links {

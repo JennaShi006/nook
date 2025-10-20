@@ -17,7 +17,7 @@ function AccountSettingsPage() {
     }
     
     // Fetch user info from backend
-    fetch(`http://localhost:5000/api/users/${current._id}`)
+    fetch(`http://localhost:5001/api/users/${current._id}`)
       .then((res) => res.json())
       .then((data) => setForm(data))
       .catch((err) => console.error("Error fetching user:", err));
@@ -29,7 +29,7 @@ function AccountSettingsPage() {
 
   const handleSave = async(e) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${form._id}`, {
+      const res = await fetch(`http://localhost:5001/api/users/${form._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

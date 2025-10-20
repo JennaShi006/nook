@@ -20,6 +20,14 @@ function Header() {
         navigate("/login");
         }
     };
+
+    const handleCreateListing = () => {
+        if (user) {
+            navigate("/create-listing", user);
+        }   else {
+            navigate("/login");
+        }
+    }
     
     return (
         <header className="header">
@@ -32,6 +40,7 @@ function Header() {
                     <Link to="/">Home</Link>
                     <Link to="/explore">Explore</Link>
                     <Link to="/chat">Chat</Link>
+                    <button className="create-listing-button" onClick={handleCreateListing}>Create Listing +</button>
                     <button className="learn-more" onClick={handleLearnMoreClick}>
                         Learn More ↗
                     </button>

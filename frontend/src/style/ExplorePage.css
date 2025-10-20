@@ -1,7 +1,8 @@
 .explore-page {
-  padding-top: 100px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: left;
+  gap: 20px;
 }
 
 .listing-grid {
@@ -15,7 +16,13 @@
 @media (max-width: 900px) {
     .listing-grid {
         flex-direction: column;
+        align-items: center; 
         padding: 12px 40px;
         gap: 12px
+    }
+    .listing-card {
+        width: 100%;
+        max-width: 600px;      /* optional, so it doesn’t stretch too wide */
+        margin: 0 0 12px 0;  
     }
 }
