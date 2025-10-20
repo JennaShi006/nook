@@ -1,24 +1,38 @@
-// backend/utils/emails.js
-import { Resend } from "resend";
+import dotenv from "dotenv";
+dotenv.config();
+import nodemailer from "nodemailer";
 
-// if (!process.env.RESEND_API_KEY) {
-//   throw new Error("RESEND_API_KEY is missing in your .env");
-// }
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
-const resend = new Resend("re_184svZKZ_Cc9PohRzMqJwqfYh5MpRLySY");
+export async function sendVerificationEmail(email,  token,userId) {
+  const verifyUrl = `${process.env.CLIENT_URL}/account?userId=${userId}&token=${token}`;
 
-export const sendVerificationEmail = async (email, token) => {
-     console.log("Sending email to:", email);
-  const verifyUrl = `${process.env.CLIENT_URL}/verify/${token}`;
-
-  await resend.emails.send({
-    from: "sandbox@resend.dev", // sandbox sender, works without a domain
+  const mailOptions = {
+    from: `"Nook" <${process.env.EMAIL_USER}>`,
     to: email,
-    subject: "Verify your UF email",
+    subject: "Verify your email",
     html: `
-      <p>Welcome! Click below to verify your account:</p>
-      <a href="${verifyUrl}" target="_blank">Verify Email</a>
+      <div style="font-family:Arial,sans-serif">
+        <h2>Verify Your Email</h2>
+        <p>Click the link below to verify your account:</p>
+        <a href="${verifyUrl}" 
+          style="border: bold; border-color: black; background-color: #a3d8ff; color:white;padding:10px 20px;text-decoration:none;border-radius:4px;">
+          Verify Email
+        </a>
+      </div>
     `,
-  });
-    console.log("Email sent!");
-};
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(" Verification email sent to", email);
+  } catch (err) {
+    console.error(" Email send error:", err);
+  }
+}
