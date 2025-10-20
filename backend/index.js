@@ -1,12 +1,16 @@
-import mongoose from "mongoose";
+
 import dotenv from "dotenv";
+dotenv.config(); 
+console.log("Testing dotenv load:", process.env.EMAIL_USER, process.env.EMAIL_PASS ? "PASS FOUND" : "NO PASS");
+
 import app from "./app.js";
 import http from "http";
 import { Server } from "socket.io";
 import Message from "./message.js";
+import mongoose from "mongoose"
 
-dotenv.config();
-console.log("ENV KEYS:", process.env.RESEND_API_KEY, process.env.CLIENT_URL);
+// dotenv.config();
+// console.log("ENV KEYS:", process.env.RESEND_API_KEY, process.env.CLIENT_URL);
 
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI;
