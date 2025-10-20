@@ -2,8 +2,6 @@ import dotenv from "dotenv";
 dotenv.config();
 import nodemailer from "nodemailer";
 
-console.log("Loaded creds:", process.env.EMAIL_USER, process.env.EMAIL_PASS ? "PASS FOUND" : "NO PASS");
-
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -13,7 +11,6 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendVerificationEmail(email,  token,userId) {
-  // Use the userId that’s passed in
   const verifyUrl = `${process.env.CLIENT_URL}/account?userId=${userId}&token=${token}`;
 
   const mailOptions = {
@@ -28,7 +25,6 @@ export async function sendVerificationEmail(email,  token,userId) {
           style="border: bold; border-color: black; background-color: #a3d8ff; color:white;padding:10px 20px;text-decoration:none;border-radius:4px;">
           Verify Email
         </a>
-        <p>If you didn’t create an account, please ignore this message.</p>
       </div>
     `,
   };

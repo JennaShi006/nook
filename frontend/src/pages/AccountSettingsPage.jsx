@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "../style/AccountSettings.css";
-import { getCurrentUser, setCurrentUser, logoutUser, setToken, getToken } from "../utils/auth";
+import { getCurrentUser, logoutUser } from "../utils/auth";
 import { useNavigate, useLocation } from "react-router-dom";
 
 function AccountSettingsPage() {
@@ -8,31 +8,30 @@ function AccountSettingsPage() {
   const location = useLocation();
   const [form, setForm] = useState(null);
 
-  // Get userId and token from query params (verification link)
   const params = new URLSearchParams(location.search);
-  const userId = params.get("userId");
-  const token = params.get("token");
+  const userIdParam = params.get("userId");
+  const tokenParam = params.get("token");
 
   useEffect(() => {
-    const current = getCurrentUser();
-    const idToFetch = userId || current?._id;
+    let current = getCurrentUser();
 
-    // If token exists in URL, store it
-    if (token) {
-      setToken(token);
+    if (tokenParam) {
+      localStorage.setItem("jwtToken", tokenParam);
     }
 
-    // Redirect to login if no valid ID
-    if (!idToFetch) {
+    // Determine which ID to fetch
+    const idToFetch = userIdParam || current?._id;
+
+    if (!idToFetch || idToFetch.length !== 24) {
       navigate("/login");
       return;
     }
 
-    console.log("Fetching user data for ID:", idToFetch);
-
     fetch(`http://localhost:5000/api/users/${idToFetch}`, {
       headers: {
-        Authorization: `Bearer ${token || (current && current.token)}`,
+        Authorization: tokenParam
+          ? `Bearer ${tokenParam}`
+          : localStorage.getItem("jwtToken") // use saved token if exists
       },
     })
       .then((res) => {
@@ -43,14 +42,15 @@ function AccountSettingsPage() {
         console.log("Fetched user data:", data);
         setForm(data);
 
-        // Save current user with token for session persistence
-        setCurrentUser({ ...data, token: token || (current && current.token) });
+        // Save to localStorage for future sessions
+        localStorage.setItem("currentUser", JSON.stringify(data));
       })
       .catch((err) => {
         console.error("Error fetching user:", err);
         alert("Could not load user data");
+        navigate("/login");
       });
-  }, [navigate, userId, token]);
+  }, [navigate, userIdParam, tokenParam]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -63,14 +63,14 @@ function AccountSettingsPage() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${getToken()}`,
+          Authorization: `Bearer ${localStorage.getItem("jwtToken")}`
         },
         body: JSON.stringify(form),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Update failed");
       alert("Account information updated successfully!");
-      setCurrentUser({ ...data, token: getToken() });
+      localStorage.setItem("currentUser", JSON.stringify(data));
     } catch (err) {
       alert(err.message);
     }
@@ -78,6 +78,7 @@ function AccountSettingsPage() {
 
   const handleLogout = () => {
     logoutUser();
+    localStorage.removeItem("jwtToken");
     alert("Logged out successfully!");
     navigate("/login");
   };
@@ -139,7 +140,9 @@ function AccountSettingsPage() {
               "January","February","March","April","May","June",
               "July","August","September","October","November","December",
             ].map((m) => (
-              <option key={m} value={m}>{m}</option>
+              <option key={m} value={m}>
+                {m}
+              </option>
             ))}
           </select>
         </div>

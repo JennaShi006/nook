@@ -53,21 +53,13 @@ router.post("/signup", async (req, res) => {
 router.get("/verify/:token", async (req, res) => {
   try {
     const { token } = req.params;
-
-    // Find user by verification token
     const user = await User.findOne({ verificationToken: token });
     if (!user) return res.status(400).json({ message: "Invalid or expired token" });
-
-    // Mark as verified
     user.verified = true;
     user.verificationToken = undefined;
     await user.save();
-
-    // Generate JWT token for auto-login
     const payload = { id: user._id, email: user.email };
     const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
-
-    // Redirect to frontend with userId and JWT token
     const redirectUrl = `${process.env.CLIENT_URL}/account?userId=${user._id}&token=${jwtToken}`;
     res.redirect(redirectUrl);
 
@@ -103,18 +95,32 @@ router.post("/users", async (req, res) => {
 });
 
 // GET /api/users/:id  -> get a single user by their ID
+// const mongoose = require("mongoose");
+
 router.get("/users/:id", async (req, res) => {
+  const id = req.params.id;
+
+  if (!id) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: "Invalid user ID format" });
+  }
+
   try {
-    const user = await User.findById(req.params.id);
+    const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
     res.status(200).json(user);
-  } catch (err) {
+
+  } 
+  catch (err) {
     console.error("Error in /users/:id:", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Server error" });
   }
 });
+
 
 
 // Update user info
