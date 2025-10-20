@@ -38,7 +38,7 @@ router.post("/signup", async (req, res) => {
     await newUser.save();
 
     // send email using your emails.js
-    await sendVerificationEmail(email, verificationToken);
+    await sendVerificationEmail(newUser.email, verificationToken, newUser._id);
 
     res.status(200).json({ message: "Verification email sent!" });
   } catch (err) {
@@ -53,10 +53,12 @@ router.post("/signup", async (req, res) => {
 router.get("/verify/:token", async (req, res) => {
   try {
     const { token } = req.params;
-    const user = await User.findOne({ verificationToken: token });
 
+    // Find user by verification token
+    const user = await User.findOne({ verificationToken: token });
     if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 
+    // Mark as verified
     user.verified = true;
     user.verificationToken = undefined;
     await user.save();
@@ -65,13 +67,16 @@ router.get("/verify/:token", async (req, res) => {
     const payload = { id: user._id, email: user.email };
     const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-    // Redirect to frontend with token as query param
-    res.redirect(`${process.env.CLIENT_URL}/login?token=${jwtToken}`);
+    // Redirect to frontend with userId and JWT token
+    const redirectUrl = `${process.env.CLIENT_URL}/account?userId=${user._id}&token=${jwtToken}`;
+    res.redirect(redirectUrl);
+
   } catch (err) {
-    console.error(err);
+    console.error("Error in /verify/:token:", err);
     res.status(500).json({ message: "Verification failed" });
   }
 });
+
 // POST /api/users
 // router.post("/users", async (req, res) => {
 //   try {
@@ -106,9 +111,11 @@ router.get("/users/:id", async (req, res) => {
     }
     res.status(200).json(user);
   } catch (err) {
+    console.error("Error in /users/:id:", err);
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Update user info
 router.put("/users/:id", async (req, res) => {

@@ -1,42 +1,76 @@
 import { useState, useEffect } from "react";
 import "../style/AccountSettings.css";
-import { getCurrentUser, logoutUser } from "../utils/auth";
-import { useNavigate } from "react-router-dom";
+import { getCurrentUser, setCurrentUser, logoutUser, setToken, getToken } from "../utils/auth";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function AccountSettingsPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [form, setForm] = useState(null);
 
-  // Simulate fetching user data
+  // Get userId and token from query params (verification link)
+  const params = new URLSearchParams(location.search);
+  const userId = params.get("userId");
+  const token = params.get("token");
+
   useEffect(() => {
     const current = getCurrentUser();
-    console.log("Loaded user:", current);
-    if (!current) {
+    const idToFetch = userId || current?._id;
+
+    // If token exists in URL, store it
+    if (token) {
+      setToken(token);
+    }
+
+    // Redirect to login if no valid ID
+    if (!idToFetch) {
       navigate("/login");
       return;
     }
-    
-    // Fetch user info from backend
-    fetch(`http://localhost:5000/api/users/${current._id}`)
-      .then((res) => res.json())
-      .then((data) => setForm(data))
-      .catch((err) => console.error("Error fetching user:", err));
-  }, [navigate]);
+
+    console.log("Fetching user data for ID:", idToFetch);
+
+    fetch(`http://localhost:5000/api/users/${idToFetch}`, {
+      headers: {
+        Authorization: `Bearer ${token || (current && current.token)}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch user");
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Fetched user data:", data);
+        setForm(data);
+
+        // Save current user with token for session persistence
+        setCurrentUser({ ...data, token: token || (current && current.token) });
+      })
+      .catch((err) => {
+        console.error("Error fetching user:", err);
+        alert("Could not load user data");
+      });
+  }, [navigate, userId, token]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSave = async(e) => {
+  const handleSave = async (e) => {
+    e.preventDefault();
     try {
       const res = await fetch(`http://localhost:5000/api/users/${form._id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
         body: JSON.stringify(form),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Update failed");
       alert("Account information updated successfully!");
+      setCurrentUser({ ...data, token: getToken() });
     } catch (err) {
       alert(err.message);
     }
@@ -54,23 +88,21 @@ function AccountSettingsPage() {
     <div className="account-settings">
       <h2>Account</h2>
       <form className="account-form" onSubmit={handleSave}>
-        {/* NAME */}
         <div className="form-group">
           <label>Name</label>
           <input
-            name="Name"
-            value={form.name}
+            name="name"
+            value={form.name || ""}
             onChange={handleChange}
             type="text"
           />
         </div>
 
-        {/* EMAIL (READ-ONLY) */}
         <div className="form-group">
           <label>Email</label>
           <input
             name="email"
-            value={form.email}
+            value={form.email || ""}
             type="email"
             readOnly
             className="readonly"
@@ -78,7 +110,6 @@ function AccountSettingsPage() {
           <small>Email cannot be changed.</small>
         </div>
 
-        {/* PASSWORD */}
         <div className="form-group">
           <label>Password</label>
           <button type="button" className="change-password-btn">
@@ -86,23 +117,21 @@ function AccountSettingsPage() {
           </button>
         </div>
 
-        {/* GRAD YEAR */}
         <div className="form-group">
           <label>Graduation Year</label>
           <input
             name="gradYear"
             type="number"
-            value={form.gradYear}
+            value={form.gradYear || ""}
             onChange={handleChange}
           />
         </div>
 
-        {/* GRAD MONTH */}
         <div className="form-group">
           <label>Graduation Month</label>
           <select
             name="gradMonth"
-            value={form.gradMonth}
+            value={form.gradMonth || ""}
             onChange={handleChange}
           >
             <option value="">Select Month</option>
@@ -110,9 +139,7 @@ function AccountSettingsPage() {
               "January","February","March","April","May","June",
               "July","August","September","October","November","December",
             ].map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
+              <option key={m} value={m}>{m}</option>
             ))}
           </select>
         </div>
@@ -124,7 +151,7 @@ function AccountSettingsPage() {
         </div>
 
         <button onClick={handleLogout} style={{ marginTop: "20px" }}>
-            Log Out
+          Log Out
         </button>
       </form>
     </div>
