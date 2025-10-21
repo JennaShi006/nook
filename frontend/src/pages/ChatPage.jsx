@@ -4,7 +4,7 @@ import { getCurrentUser } from "../utils/auth";
 import ConversationsList from "../components/ConversationsList";
 
 // Connect to backend
-const socket = io("http://localhost:5001", {
+const socket = io("http://localhost:5000", {
   transports: ["websocket"], // ensures stable connection
 });
 
@@ -26,7 +26,7 @@ function ChatPage() {
 
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`http://localhost:5001/api/messages/${user._id}/${receiverId}`);
+        const res = await fetch(`http://localhost:5000/api/messages/${user._id}/${receiverId}`);
         const data = await res.json();
         setMessages(data);
       } catch (err) {

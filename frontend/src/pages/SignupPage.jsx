@@ -19,7 +19,7 @@ function SignupPage() {
         e.preventDefault();
 
         try {
-            const response = await fetch("http://localhost:5001/api/signup", {
+            const response = await fetch("http://localhost:5000/api/signup", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form)
@@ -35,7 +35,7 @@ function SignupPage() {
             }
 
             console.log("Signup response:", data);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            localStorage.setItem("currentUser", JSON.stringify(data.user));
             alert("Signup successful! Check console for response.");
         } catch (err) {
             console.error("Error:", err);

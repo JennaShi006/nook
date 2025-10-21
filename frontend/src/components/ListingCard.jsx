@@ -5,7 +5,7 @@ export default function ListingCard({ title, description, price , picture, selle
     const [sellerName, setSellerName] = useState(null);
     useEffect(() => {
         if (!seller) return;
-        fetch(`http://localhost:5001/api/users/${seller}`)
+        fetch(`http://localhost:5000/api/users/${seller}`)
         .then((res) => res.json())
         .then((data) => {
             console.log("Fetched seller:", data)

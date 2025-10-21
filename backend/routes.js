@@ -6,10 +6,18 @@ import { sendVerificationEmail } from "./emails.js";
 import Message from "./message.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-
+import fetch from "node-fetch";
+import multer from "multer";
+import FormData from "form-data";
 
 
 const router = express.Router();
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
+}); //used to store images in memory for file upload
+
+
 router.post("/signup", async (req, res) => {
   try {
     const { name, email, username, password, gradYear, gradMonth } = req.body;
@@ -213,5 +221,35 @@ router.get("/conversations/:userId", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+router.post("/image-upload", upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+    const formData = new FormData();
+    formData.append("key", process.env.IMGBB_API_KEY);
+    formData.append("image", req.file.buffer, {
+      filename: req.file.originalname, 
+      contentType: req.file.mimetype,
+    });
+    const imgbbRes = await fetch("https://api.imgbb.com/1/upload", {
+      method: "POST",
+      body: formData,
+      headers: formData.getHeaders(),
+    });
+    
+    const result = await imgbbRes.json();
+
+    if (!result.success) {
+      return res.status(500).json({error: "Image upload failed", details: result });
+    }
+
+    const imageURL = result.data.url;
+    res.status(200).json({ url: imageURL });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to upload image" });
+  }
+
+  });
 
 export default router;
