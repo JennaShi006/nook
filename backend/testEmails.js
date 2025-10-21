@@ -17,7 +17,7 @@ async function sendTestEmail() {
   try {
     const response = await resend.emails.send({
       from: "sandbox@resend.dev",          // sandbox sender
-      to: "tanvigarg.nj@gmail.com",       // replace with your UF email
+      to: "haoran.shi@ufl.edu",       // replace with your UF email
       subject: "Test Email from Nook",
       html: "<p>This is a test email from Resend sandbox.</p>",
     });

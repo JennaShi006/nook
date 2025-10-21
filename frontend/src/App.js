@@ -8,6 +8,7 @@ import ChatPage from "./pages/ChatPage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import AccountSettingsPage from "./pages/AccountSettingsPage";
+import CreateListing from './pages/CreateListing';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/account" element={<AccountSettingsPage />} />
+          <Route path="/create-listing" element={<CreateListing />} />
           {/* add more routes later like: */}
           {/* <Route path="/explore" element={<ExplorePage />} /> */}
         </Routes>

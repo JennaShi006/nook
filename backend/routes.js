@@ -40,7 +40,17 @@ router.post("/signup", async (req, res) => {
     // send email using your emails.js
     await sendVerificationEmail(newUser.email, verificationToken, newUser._id);
 
-    res.status(200).json({ message: "Verification email sent!" });
+    res.status(200).json({ // added user info in response to allow for frontend to actually access user.id
+      message: "Verification email sent!",
+      user: {
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        username: newUser.username,
+        gradMonth: newUser.gradMonth,
+        gradYear: newUser.gradYear,
+      },
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Signup failed" });

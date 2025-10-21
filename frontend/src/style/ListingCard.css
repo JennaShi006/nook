@@ -57,3 +57,11 @@
   color: #888;
   margin: 0;
 }
+
+/* Responsive: stack listings vertically on small screens */
+@media (max-width: 600px) {
+  .listing-details {
+    flex-direction: column; /* stack details vertically on small screens */
+    gap: 8px;
+  }
+}
