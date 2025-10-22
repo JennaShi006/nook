@@ -17,7 +17,8 @@ function Header() {
     const handleAccountClick = () => {
         if (user) {
             navigate("/account");
-        }   else {
+        }
+        else {
         navigate("/login");
         }
     };
@@ -25,7 +26,8 @@ function Header() {
     const handleCreateListing = () => {
         if (user) {
             navigate("/create-listing");
-        }   else {
+        }
+        else {
             navigate("/login");
         }
     }
