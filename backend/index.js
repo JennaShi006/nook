@@ -42,8 +42,8 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", async (data) => {
     const { senderId, receiverId, content } = data;
-    const newMessage = new Message({ senderId, receiverId, content });
-    await newMessage.save();
+    // const newMessage = new Message({ senderId, receiverId, content });
+    // await newMessage.save();
 
     if (!senderId || !receiverId) {
       console.error("Missing senderId or receiverId");
@@ -51,9 +51,7 @@ io.on("connection", (socket) => {
     }
 
     // Send to receiver’s room only
-    io.to(receiverId).emit("receive_message", newMessage);
-    // Also send back to sender so they see their own sent message instantly
-    io.to(senderId).emit("receive_message", newMessage);
+    io.to(receiverId).emit("receive_message", data);
   });
 
   socket.on("disconnect", () => {

@@ -40,10 +40,11 @@ function ChatPage() {
   // Listen for incoming messages
   useEffect(() => {
     socket.on("receive_message", (data) => {
-      // only append messages relevant to this chat pair
+      // ignore self-echo
+      if (!data || data.senderId === user._id) return;
       if (
-        (data.senderId === user._id && data.receiverId === receiverId) ||
-        (data.receiverId === user._id && data.senderId === receiverId)
+        (data.senderId === receiverId && data.receiverId === user._id) ||
+        (data.receiverId === receiverId && data.senderId === user._id)
       ) {
         setMessages((prev) => [...prev, data]);
       }
