@@ -40,10 +40,11 @@ function ChatPage() {
   // Listen for incoming messages
   useEffect(() => {
     socket.on("receive_message", (data) => {
-      // only append messages relevant to this chat pair
+      // ignore self-echo
+      if (!data || data.senderId === user._id) return;
       if (
-        (data.senderId === user._id && data.receiverId === receiverId) ||
-        (data.receiverId === user._id && data.senderId === receiverId)
+        (data.senderId === receiverId && data.receiverId === user._id) ||
+        (data.receiverId === receiverId && data.senderId === user._id)
       ) {
         setMessages((prev) => [...prev, data]);
       }
@@ -53,7 +54,7 @@ function ChatPage() {
   }, [receiverId, user]);
 
   // Send message via Socket.io
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!message.trim() || !receiverId) return;
 
     const msgData = {
@@ -63,12 +64,28 @@ function ChatPage() {
       time: new Date().toLocaleTimeString(),
     };
 
-    console.log("Sending message:", msgData);
-    socket.emit("send_message", msgData);
-    setMessage("");
+    try {
+      // 1 Save to DB
+      const res = await fetch("http://localhost:5000/api/messages/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(msgData),
+      });
 
-    // trigger sidebar reload (new conversation might have been created)
-    setRefreshSidebar((prev) => prev + 1);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+
+      // 2 Also send via Socket.io (if connected)
+      socket.emit("send_message", data.newMessage);
+
+      // 3 Update UI immediately
+      setMessages((prev) => [...prev, data.newMessage]);
+      setMessage("");
+      setRefreshSidebar((prev) => prev + 1);
+    } catch (err) {
+      console.error("Message send error:", err);
+      alert("Failed to send message. Try again.");
+    }
   };
 
   return (
