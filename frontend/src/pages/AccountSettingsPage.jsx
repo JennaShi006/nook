@@ -11,9 +11,12 @@ function AccountSettingsPage() {
   const params = new URLSearchParams(location.search);
   const userIdParam = params.get("userId");
   const tokenParam = params.get("token");
+  const current = getCurrentUser();
+  console.log("Current user in AccountSettingsPage:", current);
 
   useEffect(() => {
   const current = getCurrentUser();
+    
 
     if (tokenParam) {
       localStorage.setItem("jwtToken", tokenParam);
@@ -27,7 +30,12 @@ function AccountSettingsPage() {
       return;
     }
     
- 
+  //   // Fetch user info from backend
+  //   fetch(`http://localhost:5001/api/users/${current._id}`)
+  //     .then((res) => res.json())
+  //     .then((data) => setForm(data))
+  //     .catch((err) => console.error("Error fetching user:", err));
+  // }, [navigate]);
 
     fetch(`http://localhost:5000/api/users/${idToFetch}`, {
       headers: {
