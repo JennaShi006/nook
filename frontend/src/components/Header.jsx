@@ -15,11 +15,12 @@ function Header() {
     };
 
     const handleAccountClick = () => {
+        // check if the user clicked on the link before navigate to account
         if (user) {
             navigate("/account");
         }
         else {
-        navigate("/login");
+            navigate("/login");
         }
     };
 
