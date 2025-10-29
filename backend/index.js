@@ -1,15 +1,13 @@
 
 import dotenv from "dotenv";
-dotenv.config(); 
-console.log("Testing dotenv load:", process.env.EMAIL_USER, process.env.EMAIL_PASS ? "PASS FOUND" : "NO PASS");
-
 import app from "./app.js";
 import http from "http";
 import { Server } from "socket.io";
 import Message from "./message.js";
 import mongoose from "mongoose"
 
-// dotenv.config();
+dotenv.config(); 
+console.log("Testing dotenv load:", process.env.EMAIL_USER, process.env.EMAIL_PASS ? "PASS FOUND" : "NO PASS");
 // console.log("ENV KEYS:", process.env.RESEND_API_KEY, process.env.CLIENT_URL);
 
 const PORT = process.env.PORT || 5000;
@@ -44,8 +42,8 @@ io.on("connection", (socket) => {
 
   socket.on("send_message", async (data) => {
     const { senderId, receiverId, content } = data;
-    const newMessage = new Message({ senderId, receiverId, content });
-    await newMessage.save();
+    // const newMessage = new Message({ senderId, receiverId, content });
+    // await newMessage.save();
 
     if (!senderId || !receiverId) {
       console.error("Missing senderId or receiverId");
@@ -53,9 +51,7 @@ io.on("connection", (socket) => {
     }
 
     // Send to receiver’s room only
-    io.to(receiverId).emit("receive_message", newMessage);
-    // Also send back to sender so they see their own sent message instantly
-    io.to(senderId).emit("receive_message", newMessage);
+    io.to(receiverId).emit("receive_message", data);
   });
 
   socket.on("disconnect", () => {

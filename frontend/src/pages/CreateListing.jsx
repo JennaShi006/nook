@@ -3,9 +3,10 @@ import { getCurrentUser } from "../utils/auth";
 import {useEffect, useState} from "react";
 
 
-export default function CreateListing(user) {
+
+export default function CreateListing() {
     const [paddingTop, setPaddingTop] = useState(0);
-    const currentUser = getCurrentUser()._id;
+    const currentUser = getCurrentUser();
     if (currentUser) {
         console.log("Current user in CreateListing:", currentUser);
     }
@@ -19,6 +20,30 @@ export default function CreateListing(user) {
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
+
+    const handleImageUpload = (e) => {
+        try{
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append("image", file);
+
+            fetch("http://localhost:5000/api/image-upload", {
+                method: "POST",
+                body: formData,
+            })
+            .then((res) => res.json())
+            .then((data) => {
+                console.log("Image URL:", data.url)
+                setForm({...form, picture: data.url})
+            })
+        } catch (err) {
+            console.error("Image upload error:", err);
+        }
+        
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -63,11 +88,16 @@ export default function CreateListing(user) {
     return (
         <div className="create-listing-page" style={{ paddingTop: paddingTop }}>
             <h2>Create Listing</h2>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} className="listing-form">
                 <input name="title" placeholder="title" onChange={handleChange} required /><br/>
                 <input name="description" placeholder="description" onChange={handleChange}/><br/>
                 <input name="price" placeholder="$0.00" onChange={handleChange} required/><br/>
-                <input name="picture" placeholder="pictureURL" onChange={handleChange} /><br/>
+                <input 
+                    type="file"
+                    accept="image/*"
+                    name="picture"
+                    multiple={false}
+                    onChange={handleImageUpload} /><br/>
                 <button className="listing-creation-button"type="submit">Create Listing</button>
             </form>
         </div>

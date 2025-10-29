@@ -46,6 +46,7 @@ if (listings.length === 0)
           key={listing._id}
           title={listing.title}
           description={listing.description}
+          picture={listing.picture}
           price={listing.price}
           seller={listing.seller}
         />

@@ -11,6 +11,8 @@ function AccountSettingsPage() {
   const params = new URLSearchParams(location.search);
   const userIdParam = params.get("userId");
   const tokenParam = params.get("token");
+  const current = getCurrentUser();
+  console.log("Current user in AccountSettingsPage:", current);
 
   useEffect(() => {
   const current = getCurrentUser();

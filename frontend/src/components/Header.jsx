@@ -7,6 +7,7 @@ function Header() {
 
     const navigate = useNavigate();
     const user = getCurrentUser();
+    console.log("Current user in Header:", user);
 
     /* Learn More directs to our repo! */
     const handleLearnMoreClick = () => {
@@ -16,15 +17,17 @@ function Header() {
     const handleAccountClick = () => {
         if (user) {
             navigate("/account");
-        }   else {
+        }
+        else {
         navigate("/login");
         }
     };
 
     const handleCreateListing = () => {
         if (user) {
-            navigate("/create-listing", user);
-        }   else {
+            navigate("/create-listing");
+        }
+        else {
             navigate("/login");
         }
     }
