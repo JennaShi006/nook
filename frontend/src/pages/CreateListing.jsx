@@ -26,7 +26,7 @@ export default function CreateListing(user) {
         console.log("Listing data being sent:", listingData);
 
         try {
-            const response = await fetch("http://localhost:5001/api/listings", {
+            const response = await fetch("http://localhost:5000/api/listings", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(listingData)

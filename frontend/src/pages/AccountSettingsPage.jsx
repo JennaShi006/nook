@@ -13,7 +13,7 @@ function AccountSettingsPage() {
   const tokenParam = params.get("token");
 
   useEffect(() => {
-    let current = getCurrentUser();
+  const current = getCurrentUser();
 
     if (tokenParam) {
       localStorage.setItem("jwtToken", tokenParam);
@@ -27,12 +27,7 @@ function AccountSettingsPage() {
       return;
     }
     
-    // Fetch user info from backend
-    fetch(`http://localhost:5001/api/users/${current._id}`)
-      .then((res) => res.json())
-      .then((data) => setForm(data))
-      .catch((err) => console.error("Error fetching user:", err));
-  }, [navigate]);
+ 
 
     fetch(`http://localhost:5000/api/users/${idToFetch}`, {
       headers: {
@@ -66,7 +61,7 @@ function AccountSettingsPage() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://localhost:5001/api/users/${form._id}`, {
+      const res = await fetch(`http://localhost:5000/api/users/${form._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

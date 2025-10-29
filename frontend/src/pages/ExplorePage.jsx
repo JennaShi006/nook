@@ -21,7 +21,7 @@ function ExplorePage() {
 
   // Fetching listing data
   useEffect(() => {
-    fetch("http://localhost:5001/api/listings")
+    fetch("http://localhost:5000/api/listings")
     .then((res) => res.json())
     .then((data) => {
       console.log("Fetched listings:", data); // 👈 check structure
