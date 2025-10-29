@@ -15,6 +15,7 @@ function AccountSettingsPage() {
   console.log("Current user in AccountSettingsPage:", current);
 
   useEffect(() => {
+  const current = getCurrentUser();
     
 
     if (tokenParam) {
