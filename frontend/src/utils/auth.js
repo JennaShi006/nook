@@ -11,6 +11,7 @@ export function logoutUser() {
   localStorage.removeItem("currentUser");
   localStorage.removeItem("jwtToken");
 }
+
 export function setToken(token) {
   localStorage.setItem("jwtToken", token);
 }

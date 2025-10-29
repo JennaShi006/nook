@@ -87,7 +87,6 @@ function AccountSettingsPage() {
 
   const handleLogout = () => {
     logoutUser();
-    localStorage.removeItem("jwtToken");
     alert("Logged out successfully!");
     navigate("/login");
   };
