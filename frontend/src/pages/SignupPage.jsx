@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "../style/SignupPage.css"
+const PORT = process.env.REACT_APP_PORT || 5000;
 
 function SignupPage() {
     const [form, setForm] = useState({
@@ -19,7 +20,7 @@ function SignupPage() {
         e.preventDefault();
 
         try {
-            const response = await fetch("http://localhost:5000/api/signup", {
+            const response = await fetch(`http://localhost:${PORT}/api/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(form)

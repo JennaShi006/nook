@@ -3,6 +3,8 @@ import "../style/AccountSettings.css";
 import { getCurrentUser, logoutUser } from "../utils/auth";
 import { useNavigate, useLocation } from "react-router-dom";
 
+const PORT = process.env.REACT_APP_PORT || 5000;
+
 function AccountSettingsPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,7 +38,7 @@ function AccountSettingsPage() {
   //     .catch((err) => console.error("Error fetching user:", err));
   // }, [navigate]);
 
-    fetch(`http://localhost:5000/api/users/${idToFetch}`, {
+    fetch(`http://localhost:${PORT}/api/users/${idToFetch}`, {
       headers: {
         Authorization: tokenParam
           ? `Bearer ${tokenParam}`
@@ -68,7 +70,7 @@ function AccountSettingsPage() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${form._id}`, {
+      const res = await fetch(`http://localhost:${PORT}/api/users/${form._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { getCurrentUser } from "../utils/auth";
 
+const PORT = process.env.REACT_APP_PORT || 5000;
+
 function ConversationsList({ onSelectConversation, refreshTrigger}) {
   const [partners, setPartners] = useState([]);
   const [activeChat, setActiveChat] = useState(null); // track which chat is active
@@ -9,7 +11,7 @@ function ConversationsList({ onSelectConversation, refreshTrigger}) {
   useEffect(() => {
     if (!user?._id) return;
 
-    fetch(`http://localhost:5000/api/conversations/${user._id}`)
+    fetch(`http://localhost:${PORT}/api/conversations/${user._id}`)
       .then((res) => res.json())
       .then((data) => setPartners(data))
       .catch((err) => console.error("Error loading conversations:", err));

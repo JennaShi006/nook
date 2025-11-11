@@ -3,6 +3,7 @@ import "../style/ExplorePage.css";
 import ListingCard from "../components/ListingCard";
 import { useState, useEffect } from "react";
 
+const PORT = process.env.REACT_APP_PORT || 5000;
 function ExplorePage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ function ExplorePage() {
 
   // Fetching listing data
   useEffect(() => {
-    fetch("http://localhost:5000/api/listings")
+    fetch(`http://localhost:${PORT}/api/listings`)
     .then((res) => res.json())
     .then((data) => {
       console.log("Fetched listings:", data); // 👈 check structure

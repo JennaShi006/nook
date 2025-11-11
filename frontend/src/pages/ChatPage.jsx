@@ -3,8 +3,10 @@ import { io } from "socket.io-client";
 import { getCurrentUser } from "../utils/auth";
 import ConversationsList from "../components/ConversationsList";
 
+const PORT = process.env.REACT_APP_PORT || 5000;
+
 // Connect to backend
-const socket = io("http://localhost:5000", {
+const socket = io(`http://localhost:${PORT}`, {
   transports: ["websocket"], // ensures stable connection
 });
 
@@ -26,7 +28,7 @@ function ChatPage() {
 
     const fetchMessages = async () => {
       try {
-        const res = await fetch(`http://localhost:5000/api/messages/${user._id}/${receiverId}`);
+        const res = await fetch(`http://localhost:${PORT}/api/messages/${user._id}/${receiverId}`);
         const data = await res.json();
         setMessages(data);
       } catch (err) {
@@ -66,7 +68,7 @@ function ChatPage() {
 
     try {
       // 1 Save to DB
-      const res = await fetch("http://localhost:5000/api/messages/send", {
+      const res = await fetch(`http://localhost:${PORT}/api/messages/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(msgData),
