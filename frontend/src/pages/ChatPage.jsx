@@ -61,7 +61,6 @@ function ChatPage() {
       senderId: user._id,
       receiverId: receiverId,
       content: message,
-      time: new Date().toLocaleTimeString(),
     };
 
     try {
