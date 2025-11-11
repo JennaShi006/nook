@@ -3,13 +3,15 @@ import "../style/ListingCard.css"
 import { getCurrentUser } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 
+const PORT = process.env.REACT_APP_PORT || 5000;
+
 export default function ListingCard({ title, description, price , picture, seller}) {
     const [sellerName, setSellerName] = useState(null);
     const navigate = useNavigate();
     const currentUser = getCurrentUser();
     useEffect(() => {
         if (!seller) return;
-        fetch(`http://localhost:5000/api/users/${seller}`)
+        fetch(`http://localhost:${PORT}/api/users/${seller}`)
         .then((res) => res.json())
         .then((data) => {
             console.log("Fetched seller:", data)
@@ -31,7 +33,7 @@ export default function ListingCard({ title, description, price , picture, selle
     if (!content) return;
 
     try {
-        const res = await fetch("http://localhost:5000/api/messages/send", {
+        const res = await fetch(`http://localhost:${PORT}/api/messages/send`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../style/LoginPage.css";
-import SignUpPage from "./SignupPage"
+
+const PORT = process.env.REACT_APP_PORT || 5000;
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ function LoginPage() {
     setMessage("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch(`http://localhost:${PORT}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
