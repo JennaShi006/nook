@@ -294,7 +294,11 @@ router.post("/messages/send", async (req, res) => {
       return res.status(400).json({ message: "Missing fields" });
     }
 
-    const newMessage = new Message({ senderId, receiverId, content });
+    const newMessage = new Message({
+      senderId: req.body.senderId,
+      receiverId: req.body.receiverId,
+      content: req.body.content,
+    });
     await newMessage.save();
 
     res.status(201).json({ message: "Message stored successfully", newMessage });
