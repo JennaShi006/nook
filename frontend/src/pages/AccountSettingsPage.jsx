@@ -3,6 +3,8 @@ import "../style/AccountSettings.css";
 import { getCurrentUser, logoutUser } from "../utils/auth";
 import { useNavigate, useLocation } from "react-router-dom";
 
+const PORT = process.env.REACT_APP_PORT || 5000;
+
 function AccountSettingsPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -16,6 +18,7 @@ function AccountSettingsPage() {
 
   useEffect(() => {
   const current = getCurrentUser();
+    
 
     if (tokenParam) {
       localStorage.setItem("jwtToken", tokenParam);
@@ -29,9 +32,14 @@ function AccountSettingsPage() {
       return;
     }
     
- 
+  //   // Fetch user info from backend
+  //   fetch(`http://localhost:5001/api/users/${current._id}`)
+  //     .then((res) => res.json())
+  //     .then((data) => setForm(data))
+  //     .catch((err) => console.error("Error fetching user:", err));
+  // }, [navigate]);
 
-    fetch(`http://localhost:5000/api/users/${idToFetch}`, {
+    fetch(`http://localhost:${PORT}/api/users/${idToFetch}`, {
       headers: {
         Authorization: tokenParam
           ? `Bearer ${tokenParam}`
@@ -63,7 +71,7 @@ function AccountSettingsPage() {
   const handleSave = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${form._id}`, {
+      const res = await fetch(`http://localhost:${PORT}/api/users/${form._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

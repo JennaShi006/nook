@@ -2,7 +2,7 @@ import "../style/CreateListing.css";
 import { getCurrentUser } from "../utils/auth";
 import {useEffect, useState} from "react";
 
-
+const PORT = process.env.REACT_APP_PORT || 5000;
 
 export default function CreateListing() {
     const [paddingTop, setPaddingTop] = useState(0);
@@ -29,7 +29,7 @@ export default function CreateListing() {
             const formData = new FormData();
             formData.append("image", file);
 
-            fetch("http://localhost:5000/api/image-upload", {
+            fetch(`http://localhost:${PORT}/api/image-upload`, {
                 method: "POST",
                 body: formData,
             })
@@ -51,7 +51,7 @@ export default function CreateListing() {
         console.log("Listing data being sent:", listingData);
 
         try {
-            const response = await fetch("http://localhost:5000/api/listings", {
+            const response = await fetch(`http://localhost:${PORT}/api/listings`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(listingData)
