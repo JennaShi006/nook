@@ -10,7 +10,7 @@ import multer from "multer";
 import FormData from "form-data";
 import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "./emails.js";
-
+import Review from "./reviews.js"; 
 
 const router = express.Router();
 const upload = multer({
@@ -308,5 +308,47 @@ router.post("/messages/send", async (req, res) => {
   }
 });
 
+//reviews routes
+router.get("/reviews/:listingId", async (req, res) => {
+  try {
+    const { listingId } = req.params;
+    const reviews = await Review.find({ listing: listingId })
+      .populate("reviewer", "name")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(reviews);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch reviews" });
+  }
+});
+
+router.post("/reviews/:listingId", async (req, res) => {
+  try {
+    const { listingId } = req.params;
+    const { reviewerId, rating, comment } = req.body;
+
+    if (!reviewerId || !rating) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const listing = await Listing.findById(listingId);
+    if (!listing) return res.status(404).json({ message: "Listing not found" });
+
+    const newReview = new Review({
+      reviewer: reviewerId,
+      seller: listing.seller,
+      listing: listingId,
+      rating,
+      comment,
+    });
+
+    await newReview.save();
+    res.status(201).json(newReview);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to add review" });
+  }
+});
 
 export default router;
