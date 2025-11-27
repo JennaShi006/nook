@@ -27,6 +27,10 @@ const listingSchema = new mongoose.Schema(
             ref: "User", // Reference to User model
             required: true,
         },
+        datePosted: {
+            type: Date,
+            default: Date.now,
+        },
     },
     { timestamps: true } // automatically adds createdAt & updatedAt
 );

@@ -164,14 +164,35 @@ router.post("/listings", async (req, res) => {
   }
 });
 
-// get all listings
+// search all listings
 router.get("/listings", async (req, res) => {
   try {
-    // Use mongoose query sorting. Previously .toSorted was passed an object
-    // which caused the error "The comparison function must be either a function or undefined"
-    const listings = await Listing.find().sort({ createdAt: -1 });
+    const { search, minPrice, maxPrice, startDate, endDate } = req.query;
+    const query = {};
+
+    //text search on title and description:
+    if (search) {
+      query.$or = [
+        { title: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ];
+    }
+    // price range filter
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+    // date range filter
+    if (startDate || endDate) {
+      query.datePosted = {};
+      if (startDate) query.datePosted.$gte = new Date(startDate);
+      if (endDate) query.datePosted.$lte = new Date(endDate);
+    }
+    const listings = await Listing.find(query).sort({ datePosted: -1 });
     res.status(200).json(listings);
   } catch (err) {
+    console.error("Error in /listings:", err);
     res.status(500).json({ error: err.message });
   }
 });
