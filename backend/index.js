@@ -28,6 +28,9 @@ mongoose
   .connect(MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB Connected");
+    console.log("CONNECTED TO DB:", mongoose.connection.name);
+    console.log("USING URI:", mongoose.connection.host);
+
   })
   .catch((err) => console.error("MongoDB connection error:", err));
 

@@ -50,25 +50,19 @@ function ExplorePage() {
   if (loading) return <div className="explore-page" style={{ paddingTop: paddingTop }}>Loading listings...</div>;
   if (error) return <div className="explore-page" style={{ paddingTop: paddingTop }}>Error: {error}</div>;
 
-  return (
-    <div className="explore-page" style={{ paddingTop: paddingTop }}>
-      <FilterSearch onFilterChange={setFilters} />
-      <div className="listing-grid">
-        {listings.length === 0 ? (
-          <p>No listings found.</p>
-        ) : (
-          listings.map((listing) => (
-            <ListingCard
-              key={listing._id}
-              title={listing.title}
-              description={listing.description}
-              picture={listing.picture}
-              price={listing.price}
-              seller={listing.seller}
-            />
-          ))
-        )}
-      </div>
+  return <div className ="explore-page" style={{ paddingTop: paddingTop }}>
+    <div className = "listing-grid">
+      {listings ? listings.map((listing) => (
+        <ListingCard 
+          key={listing._id}
+          title={listing.title}
+          description={listing.description}
+          picture={listing.picture}
+          price={listing.price}
+          seller={listing.seller}
+          listingId={listing._id}
+        />
+      )) : null}
     </div>
   );
 }
