@@ -2,7 +2,7 @@ import { useEffect , useState} from "react"
 import "../style/ListingCard.css"
 import { getCurrentUser } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
-
+import SellerReviews from "./SellerReviews";
 const PORT = process.env.REACT_APP_PORT || 5000;
 
 export default function ListingCard({ title, description, price , picture, seller, listingId}) {
@@ -13,6 +13,14 @@ export default function ListingCard({ title, description, price , picture, selle
   const [newComment, setNewComment] = useState("");
   const navigate = useNavigate();
     const currentUser = getCurrentUser();
+    const [showModal, setShowModal] = useState(false);
+  const [selectedSellerId, setSelectedSellerId] = useState(null);
+
+  const handleSellerClick = (sellerId) => {
+    setSelectedSellerId(sellerId);
+    setShowModal(true);
+  };
+
     useEffect(() => {
         if (!seller) return;
         fetch(`http://localhost:${PORT}/api/users/${seller}`)
@@ -101,7 +109,14 @@ export default function ListingCard({ title, description, price , picture, selle
                 <div className="listing-text">
                     <h3 className="listing-title">{title}</h3>
                     <p className="listing-description">{description}</p>
-                    <p className="listing-seller">{sellerName}</p>
+                    <p className="listing-seller"  style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
+            onClick={handleSellerClick}>{sellerName}</p>
+                         {showModal && (
+                    <SellerReviews
+                    sellerId={seller}
+                    onClose={() => setShowModal(false)}
+                    />
+                )}
                 </div>
                 <p className="listing-price">${price}</p>
             </div>

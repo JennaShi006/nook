@@ -313,8 +313,9 @@ router.get("/reviews/:listingId", async (req, res) => {
   try {
     const { listingId } = req.params;
     const reviews = await Review.find({ listing: listingId })
-      .populate("reviewer", "name")
+      .populate("reviewer", "name +username")
       .sort({ createdAt: -1 });
+    console.log(reviews);
 
     res.status(200).json(reviews);
   } catch (err) {
@@ -348,6 +349,23 @@ router.post("/reviews/:listingId", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to add review" });
+  }
+});
+// GET /api/reviews/seller/:sellerId
+router.get("/reviews/seller/:sellerId", async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+
+    // Find all reviews for listings by this seller
+    const reviews = await Review.find({ seller: sellerId })
+      .populate("reviewer", "name username")
+      .populate("listing", "title") // optional, if you want to show which listing
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(reviews);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch seller reviews" });
   }
 });
 
