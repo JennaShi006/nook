@@ -334,10 +334,9 @@ router.get("/reviews/:listingId", async (req, res) => {
   try {
     const { listingId } = req.params;
     const reviews = await Review.find({ listing: listingId })
-      .populate("reviewer", "name +username")
+      .populate("reviewer", "name username")
       .sort({ createdAt: -1 });
-    console.log(reviews);
-
+    
     res.status(200).json(reviews);
   } catch (err) {
     console.error(err);
@@ -366,7 +365,11 @@ router.post("/reviews/:listingId", async (req, res) => {
     });
 
     await newReview.save();
-    res.status(201).json(newReview);
+
+    const populatedReview = await Review.findById(newReview._id)
+      .populate("reviewer", "name username");
+
+   res.status(201).json(populatedReview);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to add review" });

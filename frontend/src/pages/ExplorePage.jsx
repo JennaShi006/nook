@@ -64,6 +64,6 @@ function ExplorePage() {
         />
       )) : null}
     </div>
-  );
-}
+    </div>
+  }
 export default ExplorePage;
