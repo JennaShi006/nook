@@ -10,7 +10,7 @@ import multer from "multer";
 import FormData from "form-data";
 import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "./emails.js";
-
+import Review from "./reviews.js"; 
 
 const router = express.Router();
 const upload = multer({
@@ -308,5 +308,65 @@ router.post("/messages/send", async (req, res) => {
   }
 });
 
+//reviews routes
+router.get("/reviews/:listingId", async (req, res) => {
+  try {
+    const { listingId } = req.params;
+    const reviews = await Review.find({ listing: listingId })
+      .populate("reviewer", "name +username")
+      .sort({ createdAt: -1 });
+    console.log(reviews);
+
+    res.status(200).json(reviews);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch reviews" });
+  }
+});
+
+router.post("/reviews/:listingId", async (req, res) => {
+  try {
+    const { listingId } = req.params;
+    const { reviewerId, rating, comment } = req.body;
+
+    if (!reviewerId || !rating) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const listing = await Listing.findById(listingId);
+    if (!listing) return res.status(404).json({ message: "Listing not found" });
+
+    const newReview = new Review({
+      reviewer: reviewerId,
+      seller: listing.seller,
+      listing: listingId,
+      rating,
+      comment,
+    });
+
+    await newReview.save();
+    res.status(201).json(newReview);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to add review" });
+  }
+});
+// GET /api/reviews/seller/:sellerId
+router.get("/reviews/seller/:sellerId", async (req, res) => {
+  try {
+    const { sellerId } = req.params;
+
+    // Find all reviews for listings by this seller
+    const reviews = await Review.find({ seller: sellerId })
+      .populate("reviewer", "name username")
+      .populate("listing", "title") // optional, if you want to show which listing
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(reviews);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch seller reviews" });
+  }
+});
 
 export default router;

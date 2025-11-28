@@ -50,6 +50,7 @@ if (listings.length === 0)
           picture={listing.picture}
           price={listing.price}
           seller={listing.seller}
+          listingId={listing._id}
         />
       )) : null}
     </div>
