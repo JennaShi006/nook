@@ -12,6 +12,8 @@ export default function ListingCard({ title, description, price , picture, selle
     const navigate = useNavigate();
     const [showSellerModal, setShowSellerModal] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [avgRating, setAvgRating] = useState(null);
+  const [numReviews, setNumReviews] = useState(0);
     const currentUser = getCurrentUser();
 //     const [reviews, setReviews] = useState([]);
 //   const [showReviews, setShowReviews] = useState(false);
@@ -38,6 +40,16 @@ export default function ListingCard({ title, description, price , picture, selle
             console.error("Error fetching seller:", err)
         })
     }, [seller]);
+
+    useEffect(() => {
+    fetch(`http://localhost:${PORT}/api/reviews/avg/${listingId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setAvgRating(data.avgRating);
+        setNumReviews(data.numReviews);
+      })
+      .catch((err) => console.error(err));
+  }, [listingId]);
 
     const handleMessageSeller = async () => {
     if (!currentUser) {
@@ -124,7 +136,16 @@ export default function ListingCard({ title, description, price , picture, selle
                          {showSellerModal && (
             <SellerReviews sellerId={seller} onClose={() => setShowSellerModal(false)} />
           )}
+        {typeof avgRating === "number" && !isNaN(avgRating) && (
+  <p style={{ textAlign: "center", fontWeight: "bold" }}>
+    Average Rating: {avgRating.toFixed(1)}/5 ⭐
+  </p>
+)}
+
+
+
         </div> 
+
                 <p className="listing-price">${price}</p>
             </div>
             <button className="message-btn" onClick={handleMessageSeller}>
@@ -137,6 +158,10 @@ export default function ListingCard({ title, description, price , picture, selle
         <ListingReviews
           listingId={listingId}
           onClose={() => setShowReviewModal(false)}
+          updateListingAverages={(avg, count) => {
+            setAvgRating(avg);
+            setNumReviews(count);
+          }}
         />
       )}
     </div>

@@ -31,6 +31,15 @@ const listingSchema = new mongoose.Schema(
             type: Date,
             default: Date.now,
         },
+        avgRating: {
+        type: Number,
+        default: 0,
+        },
+        numReviews: {
+        type: Number,
+        default: 0,
+        },
+
     },
     { timestamps: true } // automatically adds createdAt & updatedAt
 );
