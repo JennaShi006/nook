@@ -38,6 +38,15 @@ const userSchema = new mongoose.Schema(
       required: true,
       enum: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
     },
+    sellerAvgRating: {
+      type: Number,
+      default: 0,
+    },
+    sellerNumReviews: {
+      type: Number,
+      default: 0,
+    },
+
      verified: { type: Boolean, default: false },
      verificationToken: String,
     
