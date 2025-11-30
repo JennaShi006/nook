@@ -50,7 +50,8 @@ function ExplorePage() {
   if (loading) return <div className="explore-page" style={{ paddingTop: paddingTop }}>Loading listings...</div>;
   if (error) return <div className="explore-page" style={{ paddingTop: paddingTop }}>Error: {error}</div>;
 
-  return <div className ="explore-page" style={{ paddingTop: paddingTop }}>
+  return (
+  <div className ="explore-page" style={{ paddingTop: paddingTop }}>
     <div className = "listing-grid">
       {listings ? listings.map((listing) => (
         <ListingCard 
@@ -64,6 +65,7 @@ function ExplorePage() {
         />
       )) : null}
     </div>
+  </div>
   );
 }
 export default ExplorePage;
