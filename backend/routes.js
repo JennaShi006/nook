@@ -333,15 +333,19 @@ router.post("/messages/send", async (req, res) => {
 router.get("/reviews/:listingId", async (req, res) => {
   try {
     const { listingId } = req.params;
-    const reviews = await Review.find({ listing: listingId })
-      .populate("reviewer", "name +username")
-      .sort({ createdAt: -1 });
-    console.log(reviews);
 
-    res.status(200).json(reviews);
+    const reviews = await Review.find({ listing: listingId })
+      .populate("reviewer", "name username");
+
+    const avgRating =
+      reviews.length > 0
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        : 0;
+
+    res.json({ reviews, avgRating });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to fetch reviews" });
+    res.status(500).json({ message: "Error fetching reviews" });
   }
 });
 
@@ -366,28 +370,62 @@ router.post("/reviews/:listingId", async (req, res) => {
     });
 
     await newReview.save();
-    res.status(201).json(newReview);
+
+    const listingReviews = await Review.find({ listing: listingId });
+    const listingAvg =
+      listingReviews.reduce((sum, r) => sum + r.rating, 0) /
+      listingReviews.length;
+
+    listing.avgRating = listingAvg;
+    listing.numReviews = listingReviews.length;
+    await listing.save();
+
+    const sellerReviews = await Review.find({ seller: listing.seller });
+    const sellerAvg =
+      sellerReviews.reduce((sum, r) => sum + r.rating, 0) /
+      sellerReviews.length;
+
+    const sellerUser = await User.findById(listing.seller);
+    sellerUser.sellerAvgRating = sellerAvg;
+    sellerUser.sellerNumReviews = sellerReviews.length;
+    await sellerUser.save();
+
+    const populatedReview = await Review.findById(newReview._id)
+      .populate("reviewer", "name username");
+
+    res.status(201).json({
+      review: populatedReview,
+      listingAvgRating: listing.avgRating,
+      listingNumReviews: listing.numReviews,
+      sellerAvgRating: sellerUser.sellerAvgRating,
+      sellerNumReviews: sellerUser.sellerNumReviews,
+    });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to add review" });
   }
 });
+
 // GET /api/reviews/seller/:sellerId
 router.get("/reviews/seller/:sellerId", async (req, res) => {
   try {
     const { sellerId } = req.params;
 
-    // Find all reviews for listings by this seller
     const reviews = await Review.find({ seller: sellerId })
-      .populate("reviewer", "name username")
-      .populate("listing", "title") // optional, if you want to show which listing
-      .sort({ createdAt: -1 });
+      .populate("reviewer", "name username");
 
-    res.status(200).json(reviews);
+    const avgRating =
+      reviews.length > 0
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        : 0;
+
+    res.json({ reviews, avgRating });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to fetch seller reviews" });
+    res.status(500).json({ message: "Error fetching reviews" });
   }
 });
+
 
 export default router;

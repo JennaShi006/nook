@@ -3,23 +3,30 @@ import "../style/ListingCard.css"
 import { getCurrentUser } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
 import SellerReviews from "./SellerReviews";
+import ListingReviews from "./ListingReviews";
+
 const PORT = process.env.REACT_APP_PORT || 5000;
 
 export default function ListingCard({ title, description, price , picture, seller, listingId}) {
     const [sellerName, setSellerName] = useState(null);
-    const [reviews, setReviews] = useState([]);
-  const [showReviews, setShowReviews] = useState(false);
-  const [newRating, setNewRating] = useState(5);
-  const [newComment, setNewComment] = useState("");
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+    const [showSellerModal, setShowSellerModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [avgRating, setAvgRating] = useState(null);
+  const [numReviews, setNumReviews] = useState(0);
     const currentUser = getCurrentUser();
-    const [showModal, setShowModal] = useState(false);
-  const [selectedSellerId, setSelectedSellerId] = useState(null);
+//     const [reviews, setReviews] = useState([]);
+//   const [showReviews, setShowReviews] = useState(false);
+//   const [newRating, setNewRating] = useState(5);
+//   const [newComment, setNewComment] = useState("");
+  
+//     const [showModal, setShowModal] = useState(false);
+// //   const [selectedSellerId, setSelectedSellerId] = useState(null);
 
-  const handleSellerClick = (sellerId) => {
-    setSelectedSellerId(sellerId);
-    setShowModal(true);
-  };
+//   const handleSellerClick = (sellerId) => {
+//     setSelectedSellerId(sellerId);
+//     setShowModal(true);
+//   };
 
     useEffect(() => {
         if (!seller) return;
@@ -33,6 +40,16 @@ export default function ListingCard({ title, description, price , picture, selle
             console.error("Error fetching seller:", err)
         })
     }, [seller]);
+
+    useEffect(() => {
+    fetch(`http://localhost:${PORT}/api/reviews/avg/${listingId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setAvgRating(data.avgRating);
+        setNumReviews(data.numReviews);
+      })
+      .catch((err) => console.error(err));
+  }, [listingId]);
 
     const handleMessageSeller = async () => {
     if (!currentUser) {
@@ -67,40 +84,40 @@ export default function ListingCard({ title, description, price , picture, selle
         alert("Failed to send message.");
         }
     };
-      const fetchReviews = async () => {
-    try {
-      const res = await fetch(`http://localhost:${PORT}/api/reviews/${listingId}`);
-      const data = await res.json();
-      setReviews(data);
-      setShowReviews(true);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+//       const fetchReviews = async () => {
+//     try {
+//       const res = await fetch(`http://localhost:${PORT}/api/reviews/${listingId}`);
+//       const data = await res.json();
+//       setReviews(data);
+//       setShowReviews(true);
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
 
-  const handleAddReview = async () => {
-    if (!currentUser) {
-      alert("Please log in to add a review.");
-      return;
-    }
-    try {
-      const res = await fetch(`http://localhost:${PORT}/api/reviews/${listingId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          reviewerId: currentUser._id,
-          rating: newRating,
-          comment: newComment,
-        }),
-      });
-      const data = await res.json();
-      setReviews([data, ...reviews]); // add new review to top
-      setNewComment("");
-      setNewRating(5);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+//   const handleAddReview = async () => {
+//     if (!currentUser) {
+//       alert("Please log in to add a review.");
+//       return;
+//     }
+//     try {
+//       const res = await fetch(`http://localhost:${PORT}/api/reviews/${listingId}`, {
+//         method: "POST",
+//         headers: { "Content-Type": "application/json" },
+//         body: JSON.stringify({
+//           reviewerId: currentUser._id,
+//           rating: newRating,
+//           comment: newComment,
+//         }),
+//       });
+//       const data = await res.json();
+//       setReviews([data, ...reviews]); // add new review to top
+//       setNewComment("");
+//       setNewRating(5);
+//     } catch (err) {
+//       console.error(err);
+//     }
+//   };
 
     return(
         <div className ="listing-card">
@@ -109,56 +126,79 @@ export default function ListingCard({ title, description, price , picture, selle
                 <div className="listing-text">
                     <h3 className="listing-title">{title}</h3>
                     <p className="listing-description">{description}</p>
-                    <p className="listing-seller"  style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
-            onClick={handleSellerClick}>{sellerName}</p>
-                         {showModal && (
-                    <SellerReviews
-                    sellerId={seller}
-                    onClose={() => setShowModal(false)}
-                    />
-                )}
-                </div>
+                   <p
+            className="listing-seller"
+            style={{ cursor: "pointer", color: "blue", textDecoration: "underline" }}
+            onClick={() => setShowSellerModal(true)}
+          >
+            {sellerName}
+          </p>
+                         {showSellerModal && (
+            <SellerReviews sellerId={seller} onClose={() => setShowSellerModal(false)} />
+          )}
+        {typeof avgRating === "number" && !isNaN(avgRating) && (
+  <p style={{ textAlign: "center", fontWeight: "bold" }}>
+    Average Rating: {avgRating.toFixed(1)}/5 ⭐
+  </p>
+)}
+
+
+
+        </div> 
+
                 <p className="listing-price">${price}</p>
             </div>
             <button className="message-btn" onClick={handleMessageSeller}>
                 Message Seller
             </button>
-        <button className="reviews-btn" onClick={fetchReviews}>View Reviews</button>
-
-      {showReviews && (
-        <div className="reviews-popup">
-          <button className="close-btn" onClick={() => setShowReviews(false)}>X</button>
-          <h3>Reviews</h3>
-          <div className="reviews-list">
-            {reviews.length ? (
-              reviews.map((r) => (
-                <div key={r._id} className="review">
-                  <strong>{r.reviewer.name}</strong> — {r.rating}/5
-                  <p>{r.comment}</p>
-                </div>
-              ))
-            ) : (
-              <p>No reviews yet.</p>
-            )}
-          </div>
-          <div className="add-review">
-            <h4>Add Review</h4>
-            <input
-              type="number"
-              min="1"
-              max="5"
-              value={newRating}
-              onChange={(e) => setNewRating(e.target.value)}
-            />
-            <textarea
-              placeholder="Comment"
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-            />
-            <button onClick={handleAddReview}>Submit</button>
-          </div>
-        </div>
+<button className="reviews-btn" onClick={() => setShowReviewModal(true)}>
+        View Reviews
+      </button>
+      {showReviewModal && (
+        <ListingReviews
+          listingId={listingId}
+          onClose={() => setShowReviewModal(false)}
+          updateListingAverages={(avg, count) => {
+            setAvgRating(avg);
+            setNumReviews(count);
+          }}
+        />
       )}
     </div>
+    //   {/* {showReviews && (
+    //     <div className="reviews-popup">
+    //       <button className="close-btn" onClick={() => setShowReviews(false)}>X</button>
+    //       <h3>Reviews</h3>
+    //       <div className="reviews-list">
+    //         {reviews.length ? (
+    //           reviews.map((r) => (
+    //             <div key={r._id} className="review">
+    //               <strong>{r.reviewer.name}</strong> (@{r.reviewer.username})— {r.rating}/5
+    //               <p>{r.comment}</p>
+    //             </div>
+    //           ))
+    //         ) : (
+    //           <p>No reviews yet.</p>
+    //         )}
+    //       </div>
+    //       <div className="add-review">
+    //         <h4>Add Review</h4>
+    //         <input
+    //           type="number"
+    //           min="1"
+    //           max="5"
+    //           value={newRating}
+    //           onChange={(e) => setNewRating(e.target.value)}
+    //         />
+    //         <textarea
+    //           placeholder="Comment"
+    //           value={newComment}
+    //           onChange={(e) => setNewComment(e.target.value)}
+    //         />
+    //         <button onClick={handleAddReview}>Submit</button>
+    //       </div>
+    //     </div>
+    //   )}
+    // </div> */}
   );
 }
