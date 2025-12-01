@@ -136,11 +136,12 @@ export default function ListingCard({ title, description, price , picture, selle
                          {showSellerModal && (
             <SellerReviews sellerId={seller} onClose={() => setShowSellerModal(false)} />
           )}
-        {typeof avgRating === "number" && !isNaN(avgRating) && (
+        {showReviewModal && typeof avgRating === "number" && !isNaN(avgRating) && (
   <p style={{ textAlign: "center", fontWeight: "bold" }}>
-    Average Rating: {avgRating.toFixed(1)}/5 ⭐
+    Average Rating: {avgRating.toFixed(1)}/5 ⭐ ({numReviews} review{numReviews !== 1 ? "s" : ""})
   </p>
 )}
+
 
 
 
