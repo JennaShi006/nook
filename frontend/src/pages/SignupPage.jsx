@@ -30,7 +30,7 @@ function SignupPage() {
 
             if (!response.ok) {
                 // Show error if backend returns 400 or 500
-                alert(`Signup failed: ${data.error || "Please fill all required fields correctly."}`);
+                alert(`Signup failed: ${data.message || "Please fill all required fields correctly."}`);
                 console.error("Signup error:", data);
                 return;
             }

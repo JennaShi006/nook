@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       unique: true,      // no two users can share the same email
       lowercase: true,
-     // match: [/^[a-zA-Z0-9._%+-]+@ufl\.edu$/, "Must use your ufl.edu email"],
+      match: [/^[a-zA-Z0-9._%+-]+@ufl\.edu$/, "Must use your ufl.edu email"],
 
     },
     username:{
