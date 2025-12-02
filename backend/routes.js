@@ -23,10 +23,14 @@ router.post("/signup", async (req, res) => {
   try {
     const { name, email, username, password, gradYear, gradMonth } = req.body;
 
-    // restrict to ufl.edu emails
-    // if (!email.endsWith("@ufl.edu")) {
-    //   return res.status(400).json({ message: "Must use a ufl.edu email" });
-    // }
+    //restrict to ufl.edu emails
+    if (!email.endsWith("@ufl.edu")) {
+      return res.status(400).json({ message: "Must use a ufl.edu email" });
+    }
+    
+     if (!password || password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: "Email already registered" });
