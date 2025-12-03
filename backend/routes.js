@@ -22,7 +22,7 @@ const upload = multer({
 
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, username, password, gradYear, gradMonth } = req.body;
+    const { name, email, username, password, gradYear, gradMonth, userType, adminCode } = req.body;
 
     // Restrict to ufl.edu emails
     if (!email.endsWith("@ufl.edu")) {
@@ -35,6 +35,23 @@ router.post("/signup", async (req, res) => {
       });
     }
 
+    if (!userType || !["buyer", "seller", "admin"].includes(userType)) {
+      return res.status(400).json({ message: "Invalid userType" });
+    }
+
+    // If requesting admin role, validate admin code server-side
+    if (userType === "admin") {
+      const serverAdminCode = process.env.ADMIN_CODE;
+      if (!serverAdminCode) {
+        console.warn("ADMIN_CODE not configured in environment; rejecting admin signups");
+        return res.status(403).json({ message: "Admin signups are disabled" });
+      }
+      if (!adminCode || adminCode !== serverAdminCode) {
+        return res.status(403).json({ message: "Invalid admin code" });
+      }
+    }
+
+    // Keep the better uniqueness check from HEAD (your original code)
     const existingUser = await User.findOne({ 
       $or: [{ email }, { username }] 
     });
@@ -51,7 +68,7 @@ router.post("/signup", async (req, res) => {
     // Set verification expiry to 90 days from now
     const verificationExpiresAt = new Date();
     verificationExpiresAt.setDate(verificationExpiresAt.getDate() + 90);
-
+    
     const newUser = new User({
       name,
       email,
@@ -59,6 +76,7 @@ router.post("/signup", async (req, res) => {
       password,
       gradYear,
       gradMonth,
+      userType,
       verified: false,
       verificationToken,
       verificationExpiresAt, // Set initial expiry
@@ -68,9 +86,17 @@ router.post("/signup", async (req, res) => {
 
     await sendVerificationEmail(newUser.email, verificationToken, newUser._id);
 
-    res.status(200).json({
-      message: "Verification email sent! Please check your inbox.",
-      userId: newUser._id,
+    res.status(200).json({ // added user info in response to allow for frontend to actually access user.id
+      message: "Verification email sent!",
+      user: {
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        username: newUser.username,
+        gradMonth: newUser.gradMonth,
+        gradYear: newUser.gradYear,
+        userType: newUser.userType,
+      },
     });
   } catch (err) {
     console.error("Signup error:", err);
@@ -147,8 +173,8 @@ router.get("/api/some-data", requireAuth, async (req, res) => {
 
 router.post("/users", async (req, res) => {
   try {
-    const { name, email, username, password, gradYear, gradMonth } = req.body;
-    const newUser = new User({ name, email, username, password, gradYear, gradMonth });
+    const { name, email, username, password, gradYear, gradMonth, userType} = req.body;
+    const newUser = new User({ name, email, username, password, gradYear, gradMonth, userType});
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (err) {
@@ -327,8 +353,18 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // Simple password comparison
-    if (user.password !== password) {
+    let passwordValid;
+    
+    // Check if password is hashed (bcrypt hashes start with $2b$)
+    if (user.password && user.password.startsWith('$2b$')) {
+      // Compare using bcrypt (from the merge)
+      passwordValid = await bcrypt.compare(password, user.password);
+    } else {
+      // Use plain text comparison (your original code)
+      passwordValid = user.password === password;
+    }
+    
+    if (!passwordValid) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
