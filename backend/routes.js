@@ -353,6 +353,13 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid email or password" });
     }
 
+    // If user doesn't have userType, set a default
+    if (!user.userType) {
+      user.userType = "buyer";
+      await user.save();
+      console.log("Added default userType to existing user:", user.email);
+    }
+
     let passwordValid;
     
     // Check if password is hashed (bcrypt hashes start with $2b$)
@@ -429,6 +436,29 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error during login" });
+  }
+});
+
+// Add this route temporarily to fix all users
+router.get("/fix-usertypes", async (req, res) => {
+  try {
+    const users = await User.find({ userType: { $exists: false } });
+    
+    console.log(`Found ${users.length} users without userType`);
+    
+    for (const user of users) {
+      user.userType = "buyer";
+      await user.save();
+      console.log(`Fixed user: ${user.email}`);
+    }
+    
+    res.json({ 
+      message: `Added userType to ${users.length} users`,
+      fixedCount: users.length 
+    });
+  } catch (err) {
+    console.error("Fix error:", err);
+    res.status(500).json({ error: "Failed to fix userTypes" });
   }
 });
 

@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: ["buyer", "seller", "admin"],
+      default: "buyer", // Add default value
     },
     adminCode: {
       type: String,
