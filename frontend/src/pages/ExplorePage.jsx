@@ -70,6 +70,7 @@ function ExplorePage() {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
+
 export default ExplorePage;

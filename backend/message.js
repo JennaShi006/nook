@@ -6,7 +6,8 @@ const messageSchema = new mongoose.Schema(
     receiverId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     content: { type: String, required: true },
     createdAt: { type: Date, default: Date.now },
-    expiredAt: { type: Date, required: true, default: () => new Date(Date.now() + 60 * 1000)}, // new field
+    // expiredAt: { type: Date, required: true, default: () => new Date(Date.now() + 90 *24 *60 * 60 * 1000)}, // 90 days
+    expiredAt: { type: Date, required: true, default: () => new Date(Date.now() + 60 * 1000)}, // 1 minute for testing and demo
   }
 );
 

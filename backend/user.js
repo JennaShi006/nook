@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: ["buyer", "seller", "admin"],
+      default: "buyer", // Add default value
     },
     adminCode: {
       type: String,
@@ -56,9 +57,19 @@ const userSchema = new mongoose.Schema(
       default: 0,
     },
 
-     verified: { type: Boolean, default: false },
-     verificationToken: String,
-    
+     verified: {
+      type: Boolean, 
+      default: false 
+    },
+    verificationToken: String,
+    lastLoginAt: {        // Track last login
+      type: Date,
+      default: null
+    },
+    verificationExpiresAt: { // Track when verification expires (90 days from last login)
+      type: Date,
+      default: null
+    }
   },
   { timestamps: true }   // automatically adds createdAt & updatedAt
 );

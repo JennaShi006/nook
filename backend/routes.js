@@ -11,6 +11,7 @@ import FormData from "form-data";
 import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "./emails.js";
 import Review from "./reviews.js"; 
+import { requireAuth, checkVerification } from "./middleware/auth.js";
 
 const router = express.Router();
 const upload = multer({
@@ -23,13 +24,15 @@ router.post("/signup", async (req, res) => {
   try {
     const { name, email, username, password, gradYear, gradMonth, userType, adminCode } = req.body;
 
-    //restrict to ufl.edu emails
+    // Restrict to ufl.edu emails
     if (!email.endsWith("@ufl.edu")) {
       return res.status(400).json({ message: "Must use a ufl.edu email" });
     }
     
-     if (!password || password.length < 6) {
-      return res.status(400).json({ message: "Password must be at least 6 characters" });
+    if (!password || password.length < 6) {
+      return res.status(400).json({ 
+        message: "Password must be at least 6 characters" 
+      });
     }
 
     if (!userType || !["buyer", "seller", "admin"].includes(userType)) {
@@ -48,29 +51,39 @@ router.post("/signup", async (req, res) => {
       }
     }
 
-    // ensure email and username are unique
-    const existingByEmail = await User.findOne({ email });
-    if (existingByEmail) return res.status(400).json({ message: "Email already registered" });
-    const existingByUsername = await User.findOne({ username });
-    if (existingByUsername) return res.status(400).json({ message: "Username already taken" });
+    // Keep the better uniqueness check from HEAD (your original code)
+    const existingUser = await User.findOne({ 
+      $or: [{ email }, { username }] 
+    });
+    
+    if (existingUser) {
+      const field = existingUser.email === email ? "Email" : "Username";
+      return res.status(400).json({ 
+        message: `${field} already registered` 
+      });
+    }
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
-
+    
+    // Set verification expiry to 90 days from now
+    const verificationExpiresAt = new Date();
+    verificationExpiresAt.setDate(verificationExpiresAt.getDate() + 90);
+    
     const newUser = new User({
       name,
       email,
       username,
-      password, // hash later
+      password,
       gradYear,
       gradMonth,
       userType,
       verified: false,
       verificationToken,
+      verificationExpiresAt, // Set initial expiry
     });
 
     await newUser.save();
 
-    // send email using your emails.js
     await sendVerificationEmail(newUser.email, verificationToken, newUser._id);
 
     res.status(200).json({ // added user info in response to allow for frontend to actually access user.id
@@ -86,8 +99,10 @@ router.post("/signup", async (req, res) => {
       },
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Signup failed" });
+    console.error("Signup error:", err);
+    res.status(500).json({ 
+      message: "Signup failed. Please try again." 
+    });
   }
 });
 
@@ -98,12 +113,25 @@ router.get("/verify/:token", async (req, res) => {
   try {
     const { token } = req.params;
     const user = await User.findOne({ verificationToken: token });
-    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+    
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+    
+    // Mark as verified and update verification expiry
     user.verified = true;
     user.verificationToken = undefined;
+    user.verificationExpiresAt = new Date();
+    user.verificationExpiresAt.setDate(user.verificationExpiresAt.getDate() + 90);
     await user.save();
+    
+    // Generate JWT token
     const payload = { id: user._id, email: user.email };
-    const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { 
+      expiresIn: "90d" 
+    });
+    
+    // Redirect to account settings with token
     const redirectUrl = `${process.env.CLIENT_URL}/account?userId=${user._id}&token=${jwtToken}`;
     res.redirect(redirectUrl);
 
@@ -111,6 +139,22 @@ router.get("/verify/:token", async (req, res) => {
     console.error("Error in /verify/:token:", err);
     res.status(500).json({ message: "Verification failed" });
   }
+});
+
+// Protected route that requires authentication AND verification
+router.get("/api/protected/profile", requireAuth, checkVerification, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Protected route that only requires authentication (not verification)
+router.get("/api/some-data", requireAuth, async (req, res) => {
+  // This route is accessible even if not verified
+  res.json({ data: "Some data" });
 });
 
 // POST /api/users
@@ -306,29 +350,142 @@ router.post("/login", async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "User not found" });
+      return res.status(400).json({ message: "Invalid email or password" });
     }
 
-    // compare hashed password
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
-      return res.status(400).json({ message: "Invalid password" });
+    // If user doesn't have userType, set a default
+    if (!user.userType) {
+      user.userType = "buyer";
+      await user.save();
+      console.log("Added default userType to existing user:", user.email);
     }
 
-    // generate a temporary verification token
-    const loginVerificationToken = crypto.randomBytes(32).toString("hex");
-    user.verificationToken = loginVerificationToken;
+    let passwordValid;
+    
+    // Check if password is hashed (bcrypt hashes start with $2b$)
+    if (user.password && user.password.startsWith('$2b$')) {
+      // Compare using bcrypt (from the merge)
+      passwordValid = await bcrypt.compare(password, user.password);
+    } else {
+      // Use plain text comparison (your original code)
+      passwordValid = user.password === password;
+    }
+    
+    if (!passwordValid) {
+      return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    // Check if user is verified
+    if (!user.verified) {
+      const verificationToken = crypto.randomBytes(32).toString("hex");
+      user.verificationToken = verificationToken;
+      await user.save();
+      
+      await sendVerificationEmail(user.email, verificationToken, user._id);
+      
+      return res.status(400).json({ 
+        message: "Please verify your email first. A new verification link has been sent.",
+        needsVerification: true
+      });
+    }
+
+    // Check if verification has expired (90 days)
+    const now = new Date();
+    if (user.verificationExpiresAt && user.verificationExpiresAt <= now) {
+      const verificationToken = crypto.randomBytes(32).toString("hex");
+      user.verified = false;
+      user.verificationToken = verificationToken;
+      await user.save();
+      
+      await sendVerificationEmail(user.email, verificationToken, user._id);
+      
+      return res.status(400).json({ 
+        message: "Your session has expired. Please verify your email again.",
+        needsVerification: true
+      });
+    }
+
+    // Update last login and verification expiry
+    user.lastLoginAt = new Date();
+    user.verificationExpiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
     await user.save();
 
-    // send email link (reuse existing sendVerificationEmail)
-    await sendVerificationEmail(user.email, loginVerificationToken, user._id);
+    // Generate JWT token
+    const payload = { 
+      id: user._id, 
+      email: user.email 
+    };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { 
+      expiresIn: "90d"
+    });
 
     res.status(200).json({
-      message: "Verification email sent! Please check your inbox.",
+      message: "Login successful!",
+      token: token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        gradMonth: user.gradMonth,
+        gradYear: user.gradYear,
+        verified: user.verified,
+        verificationExpiresAt: user.verificationExpiresAt
+      }
     });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Server error during login" });
+  }
+});
+
+// Add this route temporarily to fix all users
+router.get("/fix-usertypes", async (req, res) => {
+  try {
+    const users = await User.find({ userType: { $exists: false } });
+    
+    console.log(`Found ${users.length} users without userType`);
+    
+    for (const user of users) {
+      user.userType = "buyer";
+      await user.save();
+      console.log(`Fixed user: ${user.email}`);
+    }
+    
+    res.json({ 
+      message: `Added userType to ${users.length} users`,
+      fixedCount: users.length 
+    });
+  } catch (err) {
+    console.error("Fix error:", err);
+    res.status(500).json({ error: "Failed to fix userTypes" });
+  }
+});
+
+// Resend verification email endpoint
+router.post("/resend-verification", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    // Generate new verification token
+    const verificationToken = crypto.randomBytes(32).toString("hex");
+    user.verificationToken = verificationToken;
+    await user.save();
+
+    // Send verification email
+    await sendVerificationEmail(user.email, verificationToken, user._id);
+
+    res.status(200).json({ 
+      message: "Verification email sent! Please check your inbox." 
+    });
+  } catch (err) {
+    console.error("Resend verification error:", err);
+    res.status(500).json({ message: "Failed to resend verification email" });
   }
 });
 
