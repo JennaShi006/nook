@@ -21,7 +21,7 @@ const upload = multer({
 
 router.post("/signup", async (req, res) => {
   try {
-    const { name, email, username, password, gradYear, gradMonth } = req.body;
+    const { name, email, username, password, gradYear, gradMonth, userType, adminCode } = req.body;
 
     //restrict to ufl.edu emails
     if (!email.endsWith("@ufl.edu")) {
@@ -32,8 +32,27 @@ router.post("/signup", async (req, res) => {
       return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: "Email already registered" });
+    if (!userType || !["buyer", "seller", "admin"].includes(userType)) {
+      return res.status(400).json({ message: "Invalid userType" });
+    }
+
+    // If requesting admin role, validate admin code server-side
+    if (userType === "admin") {
+      const serverAdminCode = process.env.ADMIN_CODE;
+      if (!serverAdminCode) {
+        console.warn("ADMIN_CODE not configured in environment; rejecting admin signups");
+        return res.status(403).json({ message: "Admin signups are disabled" });
+      }
+      if (!adminCode || adminCode !== serverAdminCode) {
+        return res.status(403).json({ message: "Invalid admin code" });
+      }
+    }
+
+    // ensure email and username are unique
+    const existingByEmail = await User.findOne({ email });
+    if (existingByEmail) return res.status(400).json({ message: "Email already registered" });
+    const existingByUsername = await User.findOne({ username });
+    if (existingByUsername) return res.status(400).json({ message: "Username already taken" });
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
@@ -44,6 +63,7 @@ router.post("/signup", async (req, res) => {
       password, // hash later
       gradYear,
       gradMonth,
+      userType,
       verified: false,
       verificationToken,
     });
@@ -62,6 +82,7 @@ router.post("/signup", async (req, res) => {
         username: newUser.username,
         gradMonth: newUser.gradMonth,
         gradYear: newUser.gradYear,
+        userType: newUser.userType,
       },
     });
   } catch (err) {
@@ -108,8 +129,8 @@ router.get("/verify/:token", async (req, res) => {
 
 router.post("/users", async (req, res) => {
   try {
-    const { name, email, username, password, gradYear, gradMonth } = req.body;
-    const newUser = new User({ name, email, username, password, gradYear, gradMonth });
+    const { name, email, username, password, gradYear, gradMonth, userType} = req.body;
+    const newUser = new User({ name, email, username, password, gradYear, gradMonth, userType});
     const savedUser = await newUser.save();
     res.status(201).json(savedUser);
   } catch (err) {
@@ -288,8 +309,9 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "User not found" });
     }
 
-    // (optional: later switch to bcrypt)
-    if (user.password !== password) {
+    // compare hashed password
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
       return res.status(400).json({ message: "Invalid password" });
     }
 

@@ -38,6 +38,15 @@ const userSchema = new mongoose.Schema(
       required: true,
       enum: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
     },
+    userType: {
+      type: String,
+      required: true,
+      enum: ["buyer", "seller", "admin"],
+    },
+    adminCode: {
+      type: String,
+      required: false,
+    },
     sellerAvgRating: {
       type: Number,
       default: 0,
