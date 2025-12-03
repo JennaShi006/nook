@@ -65,7 +65,11 @@ function ExplorePage() {
               picture={listing.picture}
               price={listing.price}
               seller={listing.seller}
+<<<<<<< HEAD
               listing={listing._id}
+=======
+              listingId={listing._id}
+>>>>>>> d93d50d67cf08ec25011af52aa73f10a2e76031e
             />
           ))
         )}
