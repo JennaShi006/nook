@@ -65,6 +65,7 @@ function ExplorePage() {
               picture={listing.picture}
               price={listing.price}
               seller={listing.seller}
+              listing={listing._id}
             />
           ))
         )}
