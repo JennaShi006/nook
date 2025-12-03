@@ -57,11 +57,13 @@ export default function FilterSearch({ onFilterChange }) {
         value={maxPrice}
         onChange={(e) => setMaxPrice(e.target.value)}
       />
+      No earlier than:
       <input
         type="date"
         value={startDate}
         onChange={(e) => setStartDate(e.target.value)}
       />
+      No later than:
       <input
         type="date"
         value={endDate}
