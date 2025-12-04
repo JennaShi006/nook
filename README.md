@@ -63,11 +63,12 @@ cd ..
 ```bash
 cd frontend
 npm install
-Cd ..
+cd ..
 ```
 
 ### 4. Run
 ```bash
+npm install
 npm start
 ```
 
