@@ -48,5 +48,44 @@ Every semester, many students face challenges during move-out - from donating or
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/<your-team-username>/nook.git
+git clone https://github.com/JennaShi006/nook.git
 cd nook
+```
+
+### 2. Backend Setup
+```bash
+cd backend
+npm install
+cd ..
+```
+
+### 3. Frontend Setup
+```bash
+cd frontend
+npm install
+Cd ..
+```
+
+### 4. Run
+```bash
+npm start
+```
+
+### Backend Environment Variables (.env Format)
+```bash
+PORT=5000
+MONGO_URI=mongodb+srv://winnie_lin_56:VG4Lu3wcMLbU5ryR@nook.0jqzyit.mongodb.net/Nook?retryWrites=true&w=majority&appName=nook
+JWT_SECRET=YYUtdFWHzCvAR5SVJTt+yRS52wOdm6BcnQ+LOkz7+jU=
+EMAIL_USER=ufnook@gmail.com 
+EMAIL_PASS=cfqagjwosbcykcvs
+CLIENT_URL=http://localhost:3000
+BACKEND_URL=http://localhost:5000
+IMGBB_API_KEY=23e2d879d6a0d28523e4a0105e721d71
+ADMIN_CODE=admincode1234
+```
+
+### Frontend Environment Variables (.env Format)
+```bash
+REACT_APP_API_URL=http://localhost:5000
+REACT_APP_PORT=5000
+```
