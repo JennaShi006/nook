@@ -36,11 +36,13 @@ export default function SellerReviews({ sellerId, onClose }) {
         {reviews.length ? (
           <div className="reviews-list">
             {reviews.map((r) => (
-              <div key={r._id} className="review">
-                <strong>{r.reviewer.name}</strong> (@{r.reviewer.username}) — {r.rating}/5
-                <p>{r.comment}</p>
-              </div>
-            ))}
+  <div key={r._id} className="review">
+    <strong>{r.reviewer?.name || "Deleted User"}</strong> 
+    (@{r.reviewer?.username || "unknown"}) — {r.rating}/5
+    <p>{r.comment}</p>
+  </div>
+))}
+
           </div>
         ) : (
           <p>No reviews yet.</p>
